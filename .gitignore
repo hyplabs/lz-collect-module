@@ -18,6 +18,7 @@ coverage.json
 deployments/
 build/
 typechain-types/
+typechain-types-lens/
 
 scripts/utils/docker-contracts.json
 

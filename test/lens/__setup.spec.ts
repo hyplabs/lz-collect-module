@@ -52,8 +52,8 @@ import {
   CollectNFT,
   RevertFollowModule,
   RevertFollowModule__factory,
-} from './../../../lens-protocol/typechain-types';
-import { LensHubLibraryAddresses } from './../../../lens-protocol/typechain-types/factories/LensHub__factory';
+} from '../../typechain-types-lens';
+import { LensHubLibraryAddresses } from '../../typechain-types-lens/factories/LensHub__factory';
 import { FAKE_PRIVATEKEY, ZERO_ADDRESS } from './helpers/constants';
 import {
   computeContractAddress,

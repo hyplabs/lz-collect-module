@@ -11,6 +11,24 @@ yarn
 yarn compile
 ```
 
+## running tests
+To test our Lens module, we use the same setup as seen in `@aave/lens-protocol`. We need to compile their contracts + copy over the generated types
+```
+cd node_modules/@aave/lens-protocol
+npm run compile
+cd ../../../
+cp -r node_modules/@aave/lens-protocol/typechain-types typechain-types-lens
+```
+
+Now we can run our tests
+```
+yarn quick-test
+
+# if you want to see the gas cost estimates
+yarn test
+```
+
+
 ## TODO:
 - unit tests
 - deploy tasks for all LZ supported testnets: https://layerzero.gitbook.io/docs/technical-reference/testnet/testnet-addresses

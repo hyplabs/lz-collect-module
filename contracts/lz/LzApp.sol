@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MIT
+
 pragma solidity 0.8.10;
 
 import "@rari-capital/solmate/src/auth/Owned.sol";
@@ -81,7 +82,7 @@ abstract contract LzApp is Owned, ILayerZeroReceiver, ILayerZeroUserApplicationC
     bytes memory _payload
   ) internal virtual;
 
-  function set_lzRemoteLookup(uint16 _srcChainId, bytes calldata _srcAddress) external onlyOwner {
+  function setRemoteLookup(uint16 _srcChainId, bytes calldata _srcAddress) external onlyOwner {
     _lzRemoteLookup[_srcChainId] = _srcAddress;
   }
 

@@ -6,8 +6,13 @@ import dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 
 import '@nomiclabs/hardhat-ethers';
+import '@nomiclabs/hardhat-etherscan';
 import '@typechain/hardhat';
 import 'hardhat-deploy';
+import 'hardhat-gas-reporter';
+import 'hardhat-contract-sizer';
+import 'hardhat-spdx-license-identifier';
+import 'solidity-coverage';
 
 if (!process.env.SKIP_LOAD) {
   glob.sync('./tasks/**/*.ts').forEach(function (file) {
@@ -76,7 +81,24 @@ const config = {
       url: 'http://127.0.0.1:8545',
       accounts: lensTestWallets()
     }
-  }
+  },
+  spdxLicenseIdentifier: {
+    overwrite: false,
+    runOnCompile: false,
+  },
+  gasReporter: {
+    enabled: (process.env.REPORT_GAS) ? true : false,
+    currency: 'USD',
+    token: 'MATIC',
+    coinmarketcap: process.env.COINMARKETCAP_API_KEY,
+    gasPrice: 45, // https://polygonscan.com/gastracker
+    gasPriceApi: 'https://api.polygonscan.com/api?module=proxy&action=eth_gasPrice'
+  },
+  etherscan: {
+    apiKey: {
+      polygonMumbai: process.env.ETHERSCAN_API_KEY
+    }
+  },
 };
 
 export default config;

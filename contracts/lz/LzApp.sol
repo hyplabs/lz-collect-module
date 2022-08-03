@@ -64,10 +64,10 @@ abstract contract LzApp is Owned, ILayerZeroReceiver, ILayerZeroUserApplicationC
     uint64 _nonce,
     bytes memory _payload
   ) public virtual override {
-    if (msg.sender == address(lzEndpoint)) { revert OnlyEndpoint(); }
+    if (msg.sender != address(lzEndpoint)) { revert OnlyEndpoint(); }
 
     bytes memory trustedRemote = _lzRemoteLookup[_srcChainId];
-    if (_srcAddress.length != trustedRemote.length || keccak256(_srcAddress) == keccak256(trustedRemote)) {
+    if (_srcAddress.length != trustedRemote.length || keccak256(_srcAddress) != keccak256(trustedRemote)) {
       revert OnlyTrustedRemote();
     }
 
@@ -82,7 +82,7 @@ abstract contract LzApp is Owned, ILayerZeroReceiver, ILayerZeroUserApplicationC
     bytes memory _payload
   ) internal virtual;
 
-  function setRemoteLookup(uint16 _srcChainId, bytes calldata _srcAddress) external onlyOwner {
+  function setTrustedRemote(uint16 _srcChainId, bytes calldata _srcAddress) external onlyOwner {
     _lzRemoteLookup[_srcChainId] = _srcAddress;
   }
 

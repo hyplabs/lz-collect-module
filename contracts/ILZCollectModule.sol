@@ -13,8 +13,8 @@ interface ILZCollectModule {
   }
 
   event InitCollectModule(
-    uint256 profileId,
-    uint256 pubId,
+    uint256 indexed profileId,
+    uint256 indexed pubId,
     uint256 collectionId,
     uint16 destinationChainId,
     bool followerOnly

@@ -15,4 +15,6 @@ interface IOmniSBT {
   function tokenURI(uint256 tokenId) external returns (string memory);
 
   function lzRemoteLookup(uint16 chainId) external returns (bytes memory);
+
+  function collections() external view returns (uint256);
 }

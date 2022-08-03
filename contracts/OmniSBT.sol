@@ -18,12 +18,14 @@ contract OmniSBT is IOmniSBT, URIStorage, ERC4973, LzApp {
 
   address public collectModule; // the FollowCampaignModule contract that can create collections and mint
   address public zroPaymentAddress; // ZRO payment address
-  mapping (uint256 => uint256) public tokenToCollectionId; // _tokenIdCounter => _collectionIdCounter
+  uint256 public collections; // counter for collections; 1-based
 
-  uint256 internal _collectionIdCounter; // counter for collections; 1-based
+  mapping (uint256 => uint256) public tokenToCollectionId; // _tokenIdCounter => collections
+
   uint256 internal _tokenIdCounter; // counter for all tokens; 1-based
+  bool internal isSource; // is this contract deployed on the "source" chain
 
-  mapping (address => mapping (uint256 => bool)) internal _hasMintedCollection; // account => _collectionIdCounter => hasMinted
+  mapping (address => mapping (uint256 => bool)) internal _hasMintedCollection; // account => collections => hasMinted
 
   modifier onlyCollectModule() {
     if (msg.sender != collectModule) revert OnlyCollectModule();
@@ -38,43 +40,41 @@ contract OmniSBT is IOmniSBT, URIStorage, ERC4973, LzApp {
    * @param remoteChainIds: whitelisted destination chain ids (supported by LayerZero)
    * @param remoteContracts: whitelisted destination contracts (deployed by us)
    */
-  constructor(address _lzEndpoint, uint16[] memory remoteChainIds, bytes[] memory remoteContracts)
+  constructor(address _lzEndpoint, uint16[] memory remoteChainIds, bytes[] memory remoteContracts, bool _isSource)
     LzApp(_lzEndpoint, msg.sender, remoteChainIds, remoteContracts)
     ERC4973("Omni Soulbound Token", "OMNI-SBT")
   {
     zroPaymentAddress = address(0);
+    isSource = _isSource;
   }
 
   /**
-   * Creates a new collection with a fixed `uri` across tokens. Can only be called from our collect module.
+   * @notice Creates a new collection with a fixed `uri` across tokens. Can only be called from our collect module.
    * @param profileId: the lens profile tokenId of the collection creator
    * @param _uri: the metadata uri to be used for all mints of this token
    */
   function createCollection(uint256 profileId, string memory _uri) external onlyCollectModule returns (uint256) {
-    unchecked { _collectionIdCounter++; }
+    unchecked { collections++; }
 
-    URIStorage._setTokenURI(_collectionIdCounter, _uri);
+    URIStorage._setTokenURI(collections, _uri);
 
-    return _collectionIdCounter;
+    return collections;
   }
 
   /**
-   * @notice Mints a single token for the `follower` - but on the destination chain specified by `endpoint`
+   * @notice Mints a single token for the `follower` - but on the destination chain specified by `chainId`
    * @param collector: the account attempting to follow
    * @param collectionId: the collection token to mint
    * @param chainId: the destination chain id
    */
   function mint(address collector, uint256 collectionId, uint16 chainId) external onlyCollectModule returns (bool) {
-    // if the collector already has a balance of `collectionId`, do not mint.
+    // if the collector has already minted a token of `collectionId`, do not mint
     if (!_hasMintedCollection[collector][collectionId]) {
-      // update storage
       _hasMintedCollection[collector][collectionId] = true;
-      unchecked { _tokenIdCounter++; }
-      tokenToCollectionId[_tokenIdCounter] = collectionId;
 
-      // TODO: maybe we mint on the source chain and do something more creative on the destination chain...
-      // mint them the soulbound nft on this chain
-      ERC4973._mint(collector, _tokenIdCounter);
+      unchecked { _tokenIdCounter++; }
+
+      // IDEA: mint NFT on source chain and have a balance of something on the destination chain (ERC998)
 
       // mint them the soulbound nft on the destination chain
       _lzSend(
@@ -92,9 +92,8 @@ contract OmniSBT is IOmniSBT, URIStorage, ERC4973, LzApp {
   }
 
   /**
-   * @notice Allow the user to redeem their token on any chain
-   * TODO: maybe we should burn on both chains at once?
-   * @param tokenId: the index for the token (not to be confused with `collectionId`)
+   * @notice [DESTINATION CHAIN] Allow the user to redeem their token
+   * @param tokenId: the token to burn
    */
   function burn(uint256 tokenId) external override(IOmniSBT, ERC4973) {
     if (_ownerOf[tokenId] != msg.sender) { revert OnlyTokenOwner(); }
@@ -105,7 +104,7 @@ contract OmniSBT is IOmniSBT, URIStorage, ERC4973, LzApp {
   }
 
   /**
-   * @notice returns the metadata uri for a given `tokenId`
+   * @notice [DESTINATION CHAIN] returns the metadata uri for a given `tokenId`
    */
   function tokenURI(uint256 tokenId) public view override(IOmniSBT, URIStorage) returns (string memory) {
     return URIStorage.tokenURI(tokenToCollectionId[tokenId]);
@@ -135,8 +134,21 @@ contract OmniSBT is IOmniSBT, URIStorage, ERC4973, LzApp {
   }
 
   /**
+   * @notice EIP-165
+   */
+  function supportsInterface(bytes4 interfaceId) public view override(ERC4973) returns (bool) {
+    if (isSource) {
+      return interfaceId == 0x01ffc9a7; // ERC165 Interface ID for ERC165
+    } else {
+      return
+        interfaceId == 0x01ffc9a7 || // ERC165 Interface ID for ERC165
+        interfaceId == 0x5b5e139f; // ERC165 Interface ID for ERC721Metadata
+    }
+  }
+
+  /**
    * @dev callback on the destination chain for minting the collector the soulbound NFT
-   * TODO: ideally, we don't send the uri every time
+   * TODO: ideally, we don't send the uri every time. maybe can send in the paylod an operation (ex: SET_COLLECTION_URI)
    */
   function _blockingLzReceive(
     uint16, // _srcChainId

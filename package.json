@@ -16,7 +16,7 @@
     "compile": "npx hardhat compile",
     "test": "REPORT_GAS=true npx hardhat test",
     "quick-test": "npx hardhat test",
-    "coverage": "npx hardhat coverage",
+    "coverage": "npx hardhat clean && npx hardhat compile && npx hardhat coverage",
     "size": "yarn run hardhat size-contracts --no-compile",
     "deploy:mumbai": "npx hardhat deploy --network mumbai",
     "deploy:docker": "npx hardhat deploy --network docker --reset && cp -r ./../lens-protocol/artifacts/contracts/core/LensHub.sol ./build/contracts/",

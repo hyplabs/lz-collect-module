@@ -17,7 +17,6 @@ import "./IOmniSBT.sol";
  * - any user that collects the post gets an OmniSBT minted on the destination chain
  */
 contract LZCollectModule is ICollectModule, ILZCollectModule, ModuleBase {
-  error NotZeroAddress();
   error InvalidChainId();
   error OnlyFollowers();
 
@@ -31,7 +30,7 @@ contract LZCollectModule is ICollectModule, ILZCollectModule, ModuleBase {
    * @param _omniSBT: whitelisted OmniSBT contract (deployed on same chain as this contract)
    */
   constructor(address hub, address _omniSBT) ModuleBase(hub) {
-    if (_omniSBT == address(0) || hub == address(0)) { revert NotZeroAddress(); }
+    if (_omniSBT == address(0)) { revert Errors.InitParamsInvalid(); }
 
     omniNFT = IOmniSBT(_omniSBT);
   }
@@ -51,7 +50,7 @@ contract LZCollectModule is ICollectModule, ILZCollectModule, ModuleBase {
 
     if (omniNFT.lzRemoteLookup(chainId).length == 0) { revert InvalidChainId(); }
 
-    uint256 collectionId = omniNFT.createCollection(profileId, ILensHub(HUB).getPub(profileId, pubId).contentURI);
+    uint256 collectionId = omniNFT.createCollection(ILensHub(HUB).getPub(profileId, pubId).contentURI);
 
     pubCollectData[profileId][pubId].collectionId = collectionId;
     pubCollectData[profileId][pubId].followerOnly = followerOnly;

@@ -77,12 +77,12 @@ describe('OmniSBT', () => {
   describe('#createCollection', () => {
     it('reverts if the caller is not the collect module', async () => {
       await expect(
-        omniNFTSource.connect(user).createCollection(FIRST_PROFILE_ID, FIRST_COLLECTION_URI)
+        omniNFTSource.connect(user).createCollection(FIRST_COLLECTION_URI)
       ).to.be.revertedWith('OnlyCollectModule');
     });
 
     it('increments the collections counter', async () => {
-      await omniNFTSource.createCollection(FIRST_PROFILE_ID, FIRST_COLLECTION_URI);
+      await omniNFTSource.createCollection(FIRST_COLLECTION_URI);
 
       const res = await omniNFTSource.collections();
       expect(res.toNumber()).to.equal(FIRST_COLLECTION_ID);
@@ -91,7 +91,7 @@ describe('OmniSBT', () => {
 
   describe('#mint', () => {
     beforeEach(async () => {
-      await omniNFTSource.createCollection(FIRST_PROFILE_ID, FIRST_COLLECTION_URI);
+      await omniNFTSource.createCollection(FIRST_COLLECTION_URI);
     });
 
     it('reverts if the caller is not the collect module', async () => {
@@ -130,7 +130,7 @@ describe('OmniSBT', () => {
 
   describe('#burn', () => {
     beforeEach(async () => {
-      await omniNFTSource.createCollection(FIRST_PROFILE_ID, FIRST_COLLECTION_URI);
+      await omniNFTSource.createCollection(FIRST_COLLECTION_URI);
       await omniNFTDestination.setTrustedRemote(CHAIN_ID, omniNFTSource.address);
       await omniNFTSource.mint(userAddress, FIRST_COLLECTION_ID, CHAIN_ID);
     });
@@ -201,6 +201,40 @@ describe('OmniSBT', () => {
       it('returns true for ERC721Metadata', async () => {
         const res = await omniNFTDestination.supportsInterface(iER721);
         expect(res).to.equal(true);
+      });
+    });
+  });
+
+  describe('ERC4973', () => {
+    beforeEach(async () => {
+      await omniNFTSource.createCollection(FIRST_COLLECTION_URI);
+      await omniNFTDestination.setTrustedRemote(CHAIN_ID, omniNFTSource.address);
+      await omniNFTSource.mint(userAddress, FIRST_COLLECTION_ID, CHAIN_ID);
+    });
+
+    describe('#ownerOf', () => {
+      it('reverts when the token has not been minted', async () => {
+        await expect(
+          omniNFTDestination.ownerOf(10)
+        ).to.be.revertedWith('NOT_MINTED');
+      });
+
+      it('returns the token owner', async () => {
+        const res = await omniNFTDestination.ownerOf(1);
+        expect(res).to.equal(userAddress);
+      });
+    });
+
+    describe('#balanceOf', () => {
+      it('reverts with the null address', async () => {
+        await expect(
+          omniNFTDestination.balanceOf(ZERO_ADDRESS)
+        ).to.be.revertedWith('ZERO_ADDRESS');
+      });
+
+      it('returns the token owner', async () => {
+        const res = await omniNFTDestination.balanceOf(userAddress);
+        expect(res.toNumber()).to.equal(1);
       });
     });
   });

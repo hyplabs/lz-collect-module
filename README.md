@@ -33,7 +33,6 @@ yarn coverage
 
 
 ## TODO:
-- unit tests
 - deploy tasks for all LZ supported testnets: https://layerzero.gitbook.io/docs/technical-reference/testnet/testnet-addresses
 - tenderly infra as interim for below (specific mumbai lens post + destination set as Optimism)
 - await Lens module whitelist process

@@ -50,10 +50,9 @@ contract OmniSBT is IOmniSBT, URIStorage, ERC4973, LzApp {
 
   /**
    * @notice Creates a new collection with a fixed `uri` across tokens. Can only be called from our collect module.
-   * @param profileId: the lens profile tokenId of the collection creator
    * @param _uri: the metadata uri to be used for all mints of this token
    */
-  function createCollection(uint256 profileId, string memory _uri) external onlyCollectModule returns (uint256) {
+  function createCollection(string memory _uri) external onlyCollectModule returns (uint256) {
     unchecked { collections++; }
 
     URIStorage._setTokenURI(collections, _uri);

@@ -31,10 +31,15 @@ yarn test
 yarn coverage
 ```
 
+## deploying contracts
+We deploy our `OmniSBT` contract on the destination chain (`fantom_testnet`) and the source chain (`mumbai`), as well as setting trusted remotes on both ends. Finally, we stub the `FollowCampaignModule` to be the deployer address
+
+1. deploy `OmniSBT` contract on the destination chain `npx hardhat deploy-token-remote --network fantom_testnet`
+2. deploy `OmniSBT` contract on the source chain + set trusted remote `npx hardhat deploy-token-source --network mumbai`
+3. set trusted remote on the destination chain `npx hardhat set-trusted-remote --network fantom_testnet`
 
 ## TODO:
-- deploy tasks for all LZ supported testnets: https://layerzero.gitbook.io/docs/technical-reference/testnet/testnet-addresses
-- tenderly infra as interim for below (specific mumbai lens post + destination set as Optimism)
-- await Lens module whitelist process
+- tenderly infra as interim for below (specific mumbai lens post + destination set as Fantom testnet)
+- await Lens module whitelist process for `FollowCampaignModule`
 - documentation / blog post
 - open source!

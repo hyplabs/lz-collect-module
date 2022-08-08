@@ -77,6 +77,15 @@ const config = {
       url: process.env.ALCHEMY_MUMBAI_URL,
       accounts: [process.env.DEPLOYER_PRIVATE_KEY, ...lensTestWallets()]
     },
+    fantom_testnet: {
+      url: process.env.FANTOM_TESTNET_RPC_URL,
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY]
+    },
+    // // not supported by LayerZero yet
+    // optimism_goerli: {
+    //   url: process.env.ALCHEMY_OPTIMISM_GOERLI_URL,
+    //   accounts: [process.env.DEPLOYER_PRIVATE_KEY]
+    // },
     docker: {
       url: 'http://127.0.0.1:8545',
       accounts: lensTestWallets()

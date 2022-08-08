@@ -1,4 +1,4 @@
-export const lensAddresses = require('./../../../../github/lens-protocol/addresses.json');
+export const lensAddresses = {}; // @TODO:
 
 // create instance of LensHub
 export const getLensHub = async (ethers, signer) => {

@@ -18,14 +18,14 @@
     "quick-test": "npx hardhat test",
     "coverage": "npx hardhat clean && npx hardhat compile && npx hardhat coverage",
     "size": "yarn run hardhat size-contracts --no-compile",
-    "deploy:mumbai": "npx hardhat deploy --network mumbai",
-    "deploy:docker": "npx hardhat deploy --network docker --reset && cp -r ./../lens-protocol/artifacts/contracts/core/LensHub.sol ./build/contracts/",
-    "etherscan:verify": "npx hardhat verify --network mumbai 0x0"
+    "etherscan:verify": "npx hardhat verify --network mumbai 0x0",
+    "t:push": "npx hardhat tenderly:push OmniSBT=0x417Ba3853CDC6f32429bF500E62d6a16CDab888A --network mumbai"
   },
   "dependencies": {
     "@aave/lens-protocol": "^1.0.2",
     "@openzeppelin/contracts": "^4.3.2",
-    "@rari-capital/solmate": "^6.4.0"
+    "@rari-capital/solmate": "^6.4.0",
+    "@tenderly/hardhat-tenderly": "^1.1.5"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "npm:hardhat-deploy-ethers",

@@ -3,14 +3,10 @@ import { contractsDeployedOn } from './../scripts/utils/migrations';
 import { LZ_CONFIG } from './helpers/constants';
 import deployContract from './helpers/deployContract';
 
-let ethers: any;
-let networkName: string;
-
 task('deploy-token-source', 'deploys OmniSBT on the source chain').setAction(async ({}, hre) => {
-  ethers = hre.ethers;
-  networkName = hre.network.name;
+  const ethers = hre.ethers;
+  const networkName = hre.network.name;
   const [deployer] = await ethers.getSigners();
-  const { maxFeePerGas, maxPriorityFeePerGas } = await ethers.provider.getFeeData();
 
   if (!LZ_CONFIG[networkName]) throw new Error('invalid network');
 

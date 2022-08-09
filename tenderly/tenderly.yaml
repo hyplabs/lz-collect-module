@@ -1,0 +1,23 @@
+account_id: ""
+project_slug: lz-collect-module
+provider: Hardhat
+
+actions:
+  uberi/lz-collect-module:
+    runtime: v1
+    sources: .
+    specs:
+      processCollected-mumbai:
+        description: process lens-protocol 'Collected' event
+        function: processCollected:handler
+        trigger:
+          type: transaction
+          transaction:
+            status:
+              - mined
+            filters:
+              - network: 80001 # mumbai
+                eventEmitted:
+                  name: Collected
+                  contract:
+                    address: 0x60ae865ee4c725cd04353b5aab364553f56cef82 # TransparentUpgradeableProxy

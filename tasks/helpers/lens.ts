@@ -1,20 +1,21 @@
-export const lensAddresses = {}; // @TODO:
+import {  Contract } from "ethers";
 
-// create instance of LensHub
-export const getLensHub = async (ethers, signer) => {
-  const LensHub = await ethers.getContractFactory('LensHub', {
-    libraries: {
-      'InteractionLogic': lensAddresses['interaction logic lib'],
-      'ProfileTokenURILogic': lensAddresses['profile token uri logic lib'],
-      'PublishingLogic': lensAddresses['publishing logic lib']
-    }
-  });
-  const contract = await LensHub.attach(lensAddresses['lensHub proxy']);
-  console.log('LensHub deployed to:', contract.address);
-
-  return { lensHub: contract.connect(signer) };
+const lensAddresses = {
+  'mumbai': {
+    'interaction logic lib': '0xefd400326635e016CbfCc309725D5B62FD9d3468',
+    'lensHub proxy': '0x60Ae865ee4C725cd04353b5AAb364553f56ceF82'
+  }
 };
 
+const collectAbi = [
+  "function collect(uint256 profileId, uint256 pubId, bytes calldata data) external returns (uint256)"
+];
+
+export const getLensHub = async (provider: any, networkName: string = 'mumbai') => (
+  new Contract(lensAddresses[networkName]['lensHub proxy'], collectAbi, provider)
+);
+
+// testnet accounts
 export const accounts = [
   { secretKey: '0xc5e8f61d1ab959b397eecc0a37a6517b8e67a0e7cf1f4bce5591f3ed80199122' },
   { secretKey: '0xd49743deccbccc5dc7baa8e69e5be03298da8688a15dd202e20f15d5e0e9a9fb' },

@@ -7,6 +7,7 @@ dotenv.config({ path: '.env' });
 
 import '@nomiclabs/hardhat-ethers';
 import '@nomiclabs/hardhat-etherscan';
+import '@tenderly/hardhat-tenderly';
 import '@typechain/hardhat';
 import 'hardhat-deploy';
 import 'hardhat-gas-reporter';
@@ -73,6 +74,14 @@ const config = {
       throwOnTransactionFailures: true,
       throwOnCallFailures: true,
     },
+    mainnet: {
+      url: process.env.ALCHEMY_MAINNET_URL,
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY, ...lensTestWallets()]
+    },
+    polygon: {
+      url: process.env.ALCHEMY_POLYGON_URL,
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY, ...lensTestWallets()]
+    },
     mumbai: {
       url: process.env.ALCHEMY_MUMBAI_URL,
       accounts: [process.env.DEPLOYER_PRIVATE_KEY, ...lensTestWallets()]
@@ -107,6 +116,10 @@ const config = {
     apiKey: {
       polygonMumbai: process.env.ETHERSCAN_API_KEY
     }
+  },
+  tenderly: {
+    project: process.env.TENDERLY_PROJECT,
+    username: process.env.TENDERLY_USERNAME,
   },
 };
 

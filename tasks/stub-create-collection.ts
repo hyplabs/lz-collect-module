@@ -19,6 +19,7 @@ task('stub-create-collection', '[STUB] creates a collection on our OmniSBT contr
   console.log(`tx: ${tx.hash}`);
   await tx.wait();
 
+  // doing this until lens whitelist
   console.log('setCollectModule (lens governance)');
   tx = await omniSBT.setCollectModule(MUMBAI_LENS_GOVERNANCE);
   console.log(`tx: ${tx.hash}`);

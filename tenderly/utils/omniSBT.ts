@@ -9,7 +9,7 @@ const NETWORKS = {
   }
 };
 
-const MUMBAI_OMNISBT_ADDRESS = '0xF58D25dE3853C5F0A6Dac10Cc9Be2638B1330955';
+export const MUMBAI_OMNISBT_ADDRESS = '0x1a255753a44EEedbf6d3Afe65A8F006F8C513b0C';
 
 export const getContract = async (context: Context, networkId: string) => {
   const accessToken = await context.secrets.get(NETWORKS[networkId].accessToken);

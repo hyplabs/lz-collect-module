@@ -62,18 +62,23 @@ contract OmniSBT is IOmniSBT, URIStorage, ERC4973, LzApp {
 
   /**
    * @notice Mints a single token for the `follower` - but on the destination chain specified by `chainId`
+   * NOTE: this function is payable as it will be stubbed until lens whitelist; afterwards, we need to transfer native
+   * tokens from the collector to this contract in order to fund the lz fee (see LzApp#_lzSend)
+   * IDEA: mint NFT on source chain and have a balance of something on the destination chain (ERC998)
    * @param collector: the account attempting to follow
    * @param collectionId: the collection token to mint
    * @param chainId: the destination chain id
    */
-  function mint(address collector, uint256 collectionId, uint16 chainId) external onlyCollectModule returns (bool) {
+  function mint(
+    address collector,
+    uint256 collectionId,
+    uint16 chainId
+  ) external onlyCollectModule payable returns (bool) {
     // if the collector has already minted a token of `collectionId`, do not mint
     if (!_hasMintedCollection[collector][collectionId]) {
       _hasMintedCollection[collector][collectionId] = true;
 
       unchecked { _tokenIdCounter++; }
-
-      // IDEA: mint NFT on source chain and have a balance of something on the destination chain (ERC998)
 
       // mint them the soulbound nft on the destination chain
       _lzSend(

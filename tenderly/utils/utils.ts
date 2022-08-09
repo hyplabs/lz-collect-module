@@ -6,8 +6,6 @@ export const findLog = (txEvent: TransactionEvent, targetAddress: string, target
   if (!logs.length) throw Error('log for target address not found');
 
   const parsed = logs.map((log) => parseLog(log, targetAbi));
-  console.log(parsed);
-
   const log = parsed.find(({ name }) => name === _name);
   if (!log) throw Error('log not found');
 

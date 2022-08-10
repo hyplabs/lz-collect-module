@@ -14,7 +14,7 @@ const LENS_HUB_PROXY = '0x60ae865ee4c725cd04353b5aab364553f56cef82';
 
 // @TODO: set these after creating your post
 const MUMBAI_HYPE_PROFILE_ID = '0x346f'; // https://testnet.lenster.xyz/u/carlosbeltran.test
-const MUMBAI_HYPE_PUB_ID = '0x03'; // https://testnet.lenster.xyz/posts/0x346f-0x02
+const MUMBAI_HYPE_PUB_ID = '0x03'; // https://testnet.lenster.xyz/posts/0x346f-0x03
 
 const MUMBAI_FIRST_COLLECTION_ID = 1;
 const MUMBAI_FIRST_COLLECTION_CHAIN_ID = '10012'; // fantom_testnet

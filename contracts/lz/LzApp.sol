@@ -21,6 +21,13 @@ abstract contract LzApp is Owned, ILayerZeroReceiver, ILayerZeroUserApplicationC
 
   mapping (uint16 => bytes) internal _lzRemoteLookup; // chainId (lz) => endpoint
 
+  /**
+   * @dev contract constructor
+   * @param _lzEndpoint: The LZ endpoint contract deployed on this chain
+   * @param owner: The contract owner
+   * @param remoteChainIds: remote chain ids to set as trusted remotes
+   * @param remoteContracts: remote contracts to set as trusted remotes
+   */
   constructor(
     address _lzEndpoint,
     address owner,

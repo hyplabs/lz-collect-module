@@ -39,6 +39,7 @@ contract OmniSBT is IOmniSBT, URIStorage, ERC4973, LzApp {
    * @param _lzEndpoint: LayerZero endpoint on this chain to relay messages
    * @param remoteChainIds: whitelisted destination chain ids (supported by LayerZero)
    * @param remoteContracts: whitelisted destination contracts (deployed by us)
+   * @param _isSource: whether this contract is deployed on the "source" chain
    */
   constructor(address _lzEndpoint, uint16[] memory remoteChainIds, bytes[] memory remoteContracts, bool _isSource)
     LzApp(_lzEndpoint, msg.sender, remoteChainIds, remoteContracts)

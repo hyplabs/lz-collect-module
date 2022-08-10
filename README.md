@@ -4,6 +4,8 @@
 - a creator attaches this module to one of their posts and specifies parameters such as the destination chain id
 - any user that collects the post gets an OmniSBT minted on the destination chain
 
+## read the [docs](./blog/blog.md)
+
 ## setup + compile contracts
 ```
 nvm use
@@ -46,8 +48,3 @@ Considering that our `LZCollectModule` contract is what triggers mints of `OmniS
 3. address the `@TODO` in `processCollected.ts` and deploy our tenderly action `cd tenderly && npm run deploy`
   - NOTE: in order for our action to process the `Collect` event off `lens-protocol`, we must add their `InteractionLogic` lib to our tenderly project. You can do so by clicking "Add to project" here: https://dashboard.tenderly.co/contract/mumbai/0xefd400326635e016cbfcc309725d5b62fd9d3468
 4. collect our post via lenster or by modifying our task `tasks/stub-collect-post.ts`
-
-## TODO:
-- await Lens module whitelist process for `FollowCampaignModule`
-- documentation / blog post
-- open source!

@@ -13,6 +13,11 @@ export const LZ_CONFIG = {
   mumbai: {
     chainId: '10009',
     endpoint: '0xf69186dfBa60DdB133E91E9A4B5673624293d8F8',
-    remotes: ['fantom_testnet']
+    remotes: ['bsc_testnet']
   },
+  bsc_testnet: {
+    chainId: '10002',
+    endpoint: '0x6Fcb97553D41516Cb228ac03FdC8B9a0a9df04A1',
+    remote: 'mumbai'
+  }
 };

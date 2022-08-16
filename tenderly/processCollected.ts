@@ -17,7 +17,8 @@ const MUMBAI_HYPE_PROFILE_ID = '0x346f'; // https://testnet.lenster.xyz/u/carlos
 const MUMBAI_HYPE_PUB_ID = '0x03'; // https://testnet.lenster.xyz/posts/0x346f-0x03
 
 const MUMBAI_FIRST_COLLECTION_ID = 1;
-const MUMBAI_FIRST_COLLECTION_CHAIN_ID = '10012'; // fantom_testnet
+// const MUMBAI_FIRST_COLLECTION_CHAIN_ID = '10012'; // fantom_testnet
+const MUMBAI_FIRST_COLLECTION_CHAIN_ID = '10002'; // bsc_testnet
 
 export const handler: ActionFn = async (context: Context, event: Event) => {
 	const txEvent = event as TransactionEvent;
@@ -44,7 +45,7 @@ export const handler: ActionFn = async (context: Context, event: Event) => {
 		);
 		console.log(`estimated fee (eth): ${utils.formatEther(value)}`);
 
-		console.log('omniSBT.mint');
+		console.log(`omniSBT.mint(${collector}, ${MUMBAI_FIRST_COLLECTION_ID}, ${MUMBAI_FIRST_COLLECTION_CHAIN_ID})`);
 		const tx = await omniSBT.connect(signer).mint(
 			collector,
 			MUMBAI_FIRST_COLLECTION_ID,
@@ -52,6 +53,8 @@ export const handler: ActionFn = async (context: Context, event: Event) => {
 			{ maxFeePerGas, maxPriorityFeePerGas, gasLimit: 1000000, value }
 		);
 
-		console.log(`not waiting - check: https://mumbai.polygonscan.com/tx/${tx.hash}`);
+		console.log(`waiting... check: https://mumbai.polygonscan.com/tx/${tx.hash}`);
+		await tx.wait();
+		console.log('success');
 	}
 };

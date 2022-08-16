@@ -28,11 +28,11 @@ task('deploy-token-source', 'deploys OmniSBT on the source chain').setAction(asy
   // IF ALREADY DEPLOYED, COMMENT LINES 18-26 ABOVE AND UNCOMMENT BELOW
   // const omniSBT = await getContract(ethers, 'OmniSBT', deployer);
 
-  console.log('setting trusted remotes');
-  await Promise.all(LZ_CONFIG[networkName].remotes.map(async(n, idx) => {
-    console.log(`${n}: ${remoteChainIds[idx]}, ${remoteContracts[idx]}`);
-    const tx = await omniSBT.setTrustedRemote(remoteChainIds[idx], remoteContracts[idx]);
-    console.log(`tx: ${tx.hash}`);
-    await tx.wait();
-  }));
+  // console.log('setting trusted remotes');
+  // await Promise.all(LZ_CONFIG[networkName].remotes.map(async(n, idx) => {
+  //   console.log(`${n}: ${remoteChainIds[idx]}, ${remoteContracts[idx]}`);
+  //   const tx = await omniSBT.setTrustedRemote(remoteChainIds[idx], remoteContracts[idx]);
+  //   console.log(`tx: ${tx.hash}`);
+  //   await tx.wait();
+  // }));
 });

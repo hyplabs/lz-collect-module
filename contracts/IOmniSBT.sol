@@ -8,7 +8,7 @@ pragma solidity 0.8.10;
 interface IOmniSBT {
   function createCollection(string memory _uri) external returns (uint256);
 
-  function mint(address collector, uint256 collectionId, uint16 chainId) external returns (bool);
+  function mint(address collector, uint256 collectionId, uint16 chainId) external payable returns (bool);
 
   function burn(uint256 tokenId) external;
 

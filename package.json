@@ -19,7 +19,7 @@
     "coverage": "npx hardhat clean && npx hardhat compile && npx hardhat coverage",
     "size": "yarn run hardhat size-contracts --no-compile",
     "etherscan:verify": "npx hardhat verify --network mumbai 0x0",
-    "t:push": "npx hardhat tenderly:push OmniSBT=0x417Ba3853CDC6f32429bF500E62d6a16CDab888A --network mumbai"
+    "t:push": "npx hardhat tenderly:push OmniSBT=0x1a255753a44EEedbf6d3Afe65A8F006F8C513b0C --network mumbai"
   },
   "dependencies": {
     "@aave/lens-protocol": "^1.0.2",

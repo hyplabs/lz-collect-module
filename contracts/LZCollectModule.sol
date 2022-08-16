@@ -50,6 +50,7 @@ contract LZCollectModule is ICollectModule, ILZCollectModule, ModuleBase {
 
     if (omniNFT.lzRemoteLookup(chainId).length == 0) { revert InvalidChainId(); }
 
+    // @TODO: maybe support a custom uri instead of using the post content uri
     uint256 collectionId = omniNFT.createCollection(ILensHub(HUB).getPub(profileId, pubId).contentURI);
 
     pubCollectData[profileId][pubId].collectionId = collectionId;
@@ -72,7 +73,7 @@ contract LZCollectModule is ICollectModule, ILZCollectModule, ModuleBase {
     uint256 profileId,
     uint256 pubId,
     bytes calldata // data
-  ) external override {
+  ) external override onlyHub {
     PubCollectData storage collectData = pubCollectData[profileId][pubId];
 
     if (collectData.followerOnly && !_isFollowing(profileId, collector)) {

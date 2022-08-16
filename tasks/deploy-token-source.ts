@@ -2,6 +2,7 @@ import { task } from 'hardhat/config';
 import { contractsDeployedOn } from './../scripts/utils/migrations';
 import { LZ_CONFIG } from './helpers/constants';
 import deployContract from './helpers/deployContract';
+import getContract from './helpers/getContract';
 
 task('deploy-token-source', 'deploys OmniSBT on the source chain').setAction(async ({}, hre) => {
   const ethers = hre.ethers;
@@ -23,6 +24,9 @@ task('deploy-token-source', 'deploys OmniSBT on the source chain').setAction(asy
 
   console.log('[STUB] set collect module');
   await omniSBT.setCollectModule(await deployer.getAddress());
+
+  // IF ALREADY DEPLOYED, COMMENT LINES 18-26 ABOVE AND UNCOMMENT BELOW
+  // const omniSBT = await getContract(ethers, 'OmniSBT', deployer);
 
   console.log('setting trusted remotes');
   await Promise.all(LZ_CONFIG[networkName].remotes.map(async(n, idx) => {

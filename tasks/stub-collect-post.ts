@@ -2,7 +2,7 @@ import { task } from 'hardhat/config';
 import { getLensHub } from './helpers/lens';
 
 const MUMBAI_HYPE_PROFILE_ID = '0x346f'; // https://testnet.lenster.xyz/u/carlosbeltran.test
-const MUMBAI_HYPE_PUB_ID = '0x03'; // https://testnet.lenster.xyz/posts/0x346f-0x02
+const MUMBAI_HYPE_PUB_ID = '0x03'; // https://testnet.lenster.xyz/posts/0x346f-0x03
 
 task('stub-collect-post', 'collects our lens post').setAction(async ({}, hre) => {
   const ethers = hre.ethers;

@@ -90,6 +90,11 @@ const config = {
       url: process.env.FANTOM_TESTNET_RPC_URL,
       accounts: [process.env.DEPLOYER_PRIVATE_KEY]
     },
+    bsc_testnet: {
+      url: 'https://data-seed-prebsc-1-s1.binance.org:8545/',
+      chainId: 97,
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY]
+    },
     // // not supported by LayerZero yet
     // optimism_goerli: {
     //   url: process.env.ALCHEMY_OPTIMISM_GOERLI_URL,

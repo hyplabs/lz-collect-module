@@ -29,7 +29,7 @@ Finally, because the `LZCollectModule` contract has to be whitelisted to interac
 ### LZCollectModule.sol
 `LZCollectModule` is a Lens Collect Module that allows creators to mint soulbound NFTs (OmniSBT) for their followers that are cross-chain compatible, via LayerZero.
 
-The two main function in this contract are `#initializePublicationCollectModule` and `#processCollect`; these are the callback functions the [LensHub](https://docs.lens.xyz/docs/lenshub) contract invokes when a post is initialized with this module, and when a post with this module is collected.
+The two main functions in this contract are `#initializePublicationCollectModule` and `#processCollect`; these are the callback functions the [LensHub](https://docs.lens.xyz/docs/lenshub) contract invokes when a post is initialized with this module, and when a post with this module is collected.
 
 The constructor arguments include the address for the `OmniSBT` contract. The interactions with that contract are
 1. validate that the `chainId` param provided in the init callback is supported
@@ -54,7 +54,7 @@ function initializePublicationCollectModule(
 
 When a post is initialized with this module, the caller must specify two things - whether the post can be only be collected by followers, and which LayerZero `chainId` the NFT should be minted for collectors. These values are encoded in the `data` param.
 
-When a post that has been initialized with this module is collected, our `#processCollect` function is invoked
+When a post that has been initialized with this module is collected, our `#processCollect` function is invoked.
 
 ```solidity
 /**
@@ -169,7 +169,7 @@ function lzReceive(
 The end result: the account that collected the post on Polygon now has a soulbound NFT on Optimism :partying_face:
 
 ## Things to note
-These contracts are by no means production-ready, and anyone wishing to branch off should consider a few things
+These contracts are by no means production-ready, and anyone wishing to branch off should consider a few things.
 
 ### `LZCollectModule` needs to be whitelisted
 As modules need to be whitelisted in order to interact with the lens protocol, we initialize a post with our module. For this reason, we deployed some [light infra](./../tenderly/processCollected.ts) to process collects from our specific lens post.

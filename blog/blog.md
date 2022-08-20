@@ -135,13 +135,13 @@ From here, it's helpful to picture the chain of function calls in order to under
 
 1. [on Polygon] someone collects our lens post
 2. our callback `LZCollectModule#processCollect` is triggered
-3. we call our mint function on `OmnitSBT` which makes an internal call to `#_lzSend`
+3. we call our mint function on `OmniSBT` which makes an internal call to `#_lzSend`
 4. we call `#send` on the `LayerZeroEndpoint` contract with our payload
 5. LayerZero moves our payload from Polygon to Optimism via an Oracle and Relayer
 6. [on Optimism] the `LayerZeroEndpoint` contract receives our payload
-7. our payload is received in our `OmnitSBT` contract via the callback `#lzReceive` which makes an internal call to `#mint`, minting the NFT for the collector
+7. our payload is received in our `OmniSBT` contract via the callback `#lzReceive` which makes an internal call to `#mint`, minting the NFT for the collector
 
-It's worth seeing how we receive messages in our `OmnitSBT` contract
+It's worth seeing how we receive messages in our `OmniSBT` contract
 ```solidity
 // LzApp.sol
 

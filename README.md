@@ -4,7 +4,7 @@
 - a creator attaches this module to one of their posts and specifies parameters such as the destination chain id
 - any user that collects the post gets an OmniSBT minted on the destination chain
 
-## read the [docs](./blog/blog.md)
+## blog post describing this project in detail [here](./blog/blog.md)
 
 ## setup + compile contracts
 ```

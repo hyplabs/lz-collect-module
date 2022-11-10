@@ -6,6 +6,7 @@ import {ModuleBase, Errors} from "@aave/lens-protocol/contracts/core/modules/Mod
 import {FollowValidatorFollowModuleBase} from "@aave/lens-protocol/contracts/core/modules/follow/FollowValidatorFollowModuleBase.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import {ILensHub} from '@aave/lens-protocol/contracts/interfaces/ILensHub.sol';
 import {NonblockingFlexLzApp} from "./lz/NonblockingFlexLzApp.sol";
 
 /**
@@ -86,19 +87,23 @@ contract LZGatedFollowModule is FollowValidatorFollowModuleBase, NonblockingFlex
 
   /**
    * @dev Process a follow by:
-   * - revert if the `follower` is already following the profile
-   * - if the profile has set gated follow data on this chain, just do the token balance check inline
-   * - else send the payload for one of our cross-chain proxies to do the check for us and return the result async
+   * - if the profile has set gated follow data on this chain, just do the token balance check inline and revert if the
+   * threshold is not met
+   * - else send the payload to our cross-chain proxy on the remote chain to do the check and asynchronously return the
+   * result.
+   * NOTE: we must have an intermediate state to report back to the LensHub contract
    */
   function processFollow(
     address follower,
     uint256 profileId,
     bytes calldata // data
-  ) external override onlyHub {
+  ) external override onlyHub returns (bool pendingAsyncRequest) {
     if (gatedFollowPerProfile[profileId].remoteChainId == sourceChainId) {
       if (!_checkThreshold(follower, gatedFollowPerProfile[profileId])) {
         revert Errors.FollowInvalid();
       }
+
+      pendingAsyncRequest = false;
     } else {
       // make the async balance check, expect result in `#_nonblockingLzReceive`
       _lzSend(
@@ -114,12 +119,7 @@ contract LZGatedFollowModule is FollowValidatorFollowModuleBase, NonblockingFlex
         bytes("")
       );
 
-      // @TODO: the only feedback to give back to LensHub is a revert if the follow is invalid
-      // - we won't know if the follow is valid or not until after the async execution on the remote chain
-      // - even if we used an oracle for a data read, it's async
-      // - we either
-      // 1) return some kind of pending state so LensHub doesn't immediately mint the follow nft
-      // 2) maintain some permission to later execute the minting of follow nfts if the async check is successful
+      pendingAsyncRequest = true;
     }
   }
 
@@ -133,14 +133,25 @@ contract LZGatedFollowModule is FollowValidatorFollowModuleBase, NonblockingFlex
     uint256 followNFTTokenId
   ) external override {}
 
-  // @TODO: pending how to handle async requests
+  /**
+   * @dev Callback from our `LZGatedProxy` contract deployed on a remote chain
+   * - contains the result of the token balance check in `shouldFollow`
+   * - make a call to the LensHub to complete the async follow request (they should require that there is a pending
+   * follow request, process, and clear it out)
+   */
   function _nonblockingLzReceive(
     uint16 _srcChainId,
     bytes memory _srcAddress,
     uint64 _nonce,
     bytes memory _payload
   ) internal override {
+    (
+      address follower,
+      uint256 profileId,
+      bool shouldFollow
+    ) = abi.decode(data, (address, uint256, bool));
 
+    ILensHub(HUB).completePendingFollow(follower, profileId, shouldFollow);
   }
 
   /**

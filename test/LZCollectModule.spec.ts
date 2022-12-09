@@ -27,24 +27,12 @@ import {
 } from '../typechain-types'
 import { abi } from './lens/abi/Events.json';
 import LZCollectModuleABI from './../build/contracts/LZCollectModule.sol/LZCollectModule.json';
+import { parseLogsNested } from './utils/parseLogs';
 
 const EMPTY_BYTES = '0x';
 const FIRST_PUB_ID = 1;
 const FIRST_COLLECTION_ID = 1;
 const CHAIN_ID = 123;
-
-// HACKY: attempt to parse logs from Lens=>Events lib and LZCollectModule
-const parseLogs = ({ logs }) => {
-  const iface = new ethers.utils.Interface(abi);
-  const followIFace = new ethers.utils.Interface(LZCollectModuleABI.abi);
-  return (logs.map((log) => {
-    try { return iface.parseLog(log); }
-    catch {
-      try { return followIFace.parseLog(log); }
-      catch {}
-    }
-  })).filter((l) => l);
-};
 
 makeSuiteCleanRoom('LZCollectModule', function () {
   let omniNFTSource: OmniSBT, omniNFTDestination: OmniSBT;
@@ -153,7 +141,7 @@ makeSuiteCleanRoom('LZCollectModule', function () {
       });
 
       it('emits an event', async () => {
-        const logs = parseLogs(await tx.wait());
+        const logs = parseLogsNested(await tx.wait(), abi, LZCollectModuleABI.abi);
         const event = logs.find(({ name }) => name === 'InitCollectModule');
         expect(event).not.to.equal(undefined);
         expect(event.args.collectionId.toNumber()).to.equal(FIRST_COLLECTION_ID);

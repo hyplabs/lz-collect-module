@@ -1,5 +1,5 @@
 import '@nomiclabs/hardhat-ethers';
-import { BigNumberish, Bytes, logger, utils, BigNumber, Contract, Signer } from 'ethers';
+import { BigNumberish, Bytes, logger, utils, BigNumber, Contract, Signer, VoidSigner } from 'ethers';
 import {
   eventsLib,
   helper,
@@ -100,4 +100,56 @@ export async function takeSnapshot() {
 
 export async function revertToSnapshot() {
   await hre.ethers.provider.send('evm_revert', [snapshotId]);
+}
+
+export async function getFollowWithSigParts(
+  wallet: VoidSigner,
+  profileIds: string[] | number[],
+  datas: Bytes[] | string[],
+  nonce: number,
+  deadline: string
+): Promise<{ v: number; r: string; s: string }> {
+  const msgParams = buildFollowWithSigParams(profileIds, datas, nonce, deadline);
+  return await getSig(wallet, msgParams);
+}
+
+async function getSig(wallet: VoidSigner, msgParams: {
+  domain: any;
+  types: any;
+  value: any;
+}): Promise<{ v: number; r: string; s: string }> {
+  const sig = await wallet._signTypedData(msgParams.domain, msgParams.types, msgParams.value);
+  return utils.splitSignature(sig);
+}
+
+const buildFollowWithSigParams = (
+  profileIds: string[] | number[],
+  datas: Bytes[] | string[],
+  nonce: number,
+  deadline: string
+) => ({
+  types: {
+    FollowWithSig: [
+      { name: 'profileIds', type: 'uint256[]' },
+      { name: 'datas', type: 'bytes[]' },
+      { name: 'nonce', type: 'uint256' },
+      { name: 'deadline', type: 'uint256' },
+    ],
+  },
+  domain: domain(),
+  value: {
+    profileIds: profileIds,
+    datas: datas,
+    nonce: nonce,
+    deadline: deadline,
+  },
+});
+
+function domain(): { name: string; version: string; chainId: number; verifyingContract: string } {
+  return {
+    name: LENS_HUB_NFT_NAME,
+    version: '1',
+    chainId: getChainId(),
+    verifyingContract: lensHub.address,
+  };
 }

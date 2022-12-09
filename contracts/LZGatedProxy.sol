@@ -2,11 +2,8 @@
 
 pragma solidity 0.8.10;
 
-import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import {DataTypes} from "@aave/lens-protocol/contracts/libraries/DataTypes.sol";
 import "./lz/SimpleLzApp.sol";
-import "./utils/ExcessivelySafeCall.sol";
 
 /**
  * @title LZGatedProxy
@@ -14,7 +11,7 @@ import "./utils/ExcessivelySafeCall.sol";
  * token balances from remote contracts on any chain supported by layerzero.
  */
 contract LZGatedProxy is SimpleLzApp {
-  using ExcessivelySafeCall for address;
+  error InsufficientBalance();
 
   address public zroPaymentAddress; // ZRO payment address
 
@@ -34,26 +31,23 @@ contract LZGatedProxy is SimpleLzApp {
     zroPaymentAddress = address(0);
   }
 
-  /**
-   * @dev receiving a request from the remote module to validate the token balance for a given account on a given
-   * token contract. The result is then sent back to the remote contract.
-   */
-  function _blockingLzReceive(
-    uint16, // _srcChainId
-    bytes memory, // _srcAddress
-    uint64, // _nonce
-    bytes memory _payload
-  ) internal override {
-    (
-      address follower,
-      address tokenContract,
-      uint256 profileId,
-      uint256 balanceThreshold
-    ) = abi.decode(_payload, (address, address, uint256, uint256));
+  function validateAndRelayWithSig(
+    uint256 profileId,
+    address tokenContract,
+    uint256 balanceThreshold,
+    DataTypes.FollowWithSigData memory followSig
+  ) external {
+    if (!_checkThreshold(msg.sender, tokenContract, balanceThreshold)) { revert InsufficientBalance(); }
 
     _lzSend(
-      abi.encode(follower, profileId, _checkThreshold(follower, tokenContract, balanceThreshold)),
-      payable(follower),
+      abi.encode(
+        msg.sender,
+        tokenContract,
+        profileId,
+        balanceThreshold,
+        followSig
+      ),
+      payable(msg.sender),
       zroPaymentAddress,
       bytes("")
     );
@@ -67,11 +61,7 @@ contract LZGatedProxy is SimpleLzApp {
     (
       bool success,
       bytes memory result
-    ) = tokenContract.excessivelySafeCall(
-      gasleft(),
-      150,
-      abi.encodeWithSignature("balanceOf(address)", account)
-    );
+    ) = tokenContract.call(abi.encodeWithSignature("balanceOf(address)", account));
 
     if (!success) return false;
 

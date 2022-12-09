@@ -3,7 +3,6 @@
 pragma solidity 0.8.10;
 
 import "@rari-capital/solmate/src/auth/Owned.sol";
-import "./interfaces/ILayerZeroReceiver.sol";
 import "./interfaces/ILayerZeroUserApplicationConfig.sol";
 import "./interfaces/ILayerZeroEndpoint.sol";
 
@@ -11,7 +10,7 @@ import "./interfaces/ILayerZeroEndpoint.sol";
  * @title SimpleLzApp
  * @notice Simple, blocking LayerZero-enabled contract that only has one trusted remote chainId and contract
  */
-abstract contract SimpleLzApp is Owned, ILayerZeroReceiver, ILayerZeroUserApplicationConfig {
+abstract contract SimpleLzApp is Owned, ILayerZeroUserApplicationConfig {
   error NotZeroAddress();
 
   ILayerZeroEndpoint public immutable lzEndpoint;
@@ -49,26 +48,6 @@ abstract contract SimpleLzApp is Owned, ILayerZeroReceiver, ILayerZeroUserApplic
       _adapterParams
     );
   }
-
-  function lzReceive(
-    uint16 _srcChainId,
-    bytes memory _srcAddress,
-    uint64 _nonce,
-    bytes memory _payload
-  ) public virtual override {
-    // sanity checks, but we don't want to revert
-    if (msg.sender != address(lzEndpoint) || _srcChainId != remoteChainId) return;
-
-    _blockingLzReceive(_srcChainId, _srcAddress, _nonce, _payload);
-  }
-
-  // @dev to be overriden by the concrete class
-  function _blockingLzReceive(
-    uint16 _srcChainId,
-    bytes memory _srcAddress,
-    uint64 _nonce,
-    bytes memory _payload
-  ) internal virtual;
 
   // @dev generic config for LayerZero user Application
   function setConfig(

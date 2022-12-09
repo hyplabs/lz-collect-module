@@ -3,11 +3,12 @@
 pragma solidity 0.8.10;
 
 import {ModuleBase, Errors} from "@aave/lens-protocol/contracts/core/modules/ModuleBase.sol";
-import {FollowValidatorFollowModuleBase} from "@aave/lens-protocol/contracts/core/modules/follow/FollowValidatorFollowModuleBase.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import {ILensHub} from '@aave/lens-protocol/contracts/interfaces/ILensHub.sol';
-import {NonblockingFlexLzApp} from "./lz/NonblockingFlexLzApp.sol";
+import {
+  FollowValidatorFollowModuleBase
+} from "@aave/lens-protocol/contracts/core/modules/follow/FollowValidatorFollowModuleBase.sol";
+import {ILensHub} from "@aave/lens-protocol/contracts/interfaces/ILensHub.sol";
+import {DataTypes} from "@aave/lens-protocol/contracts/libraries/DataTypes.sol";
+import {LzApp} from "./lz/LzApp.sol";
 
 /**
  * @title LZGatedFollowModule
@@ -16,9 +17,8 @@ import {NonblockingFlexLzApp} from "./lz/NonblockingFlexLzApp.sol";
  * @notice A Lens Follow Module that allows profile holders to gate their following with ERC20 or ERC721 balances held
  * on other chains.
  */
-contract LZGatedFollowModule is FollowValidatorFollowModuleBase, NonblockingFlexLzApp {
+contract LZGatedFollowModule is FollowValidatorFollowModuleBase, LzApp {
   address public zroPaymentAddress; // ZRO payment address
-  uint16 public sourceChainId; // chainId (lz) this module is deployed on
 
   struct GatedFollowData {
     address remoteContract; // the remote contract to read from
@@ -27,8 +27,10 @@ contract LZGatedFollowModule is FollowValidatorFollowModuleBase, NonblockingFlex
   }
 
   mapping (uint256 => GatedFollowData) public gatedFollowPerProfile; // profileId => gated follow data
+  mapping (uint256 => mapping (address => bool)) public validatedFollowers; // profileId => address which has been validated
 
   event InitFollowModule(uint256 indexed profileId, address tokenContract, uint256 balanceThreshold, uint16 chainId);
+  event MessageFailed(uint16 _srcChainId, bytes _srcAddress, uint64 _nonce, bytes _payload, string _reason);
 
   /**
    * @dev contract constructor
@@ -43,11 +45,9 @@ contract LZGatedFollowModule is FollowValidatorFollowModuleBase, NonblockingFlex
     address hub,
     address _lzEndpoint,
     uint16[] memory remoteChainIds,
-    uint16 _sourceChainId,
     bytes[] memory remoteProxies
-  ) ModuleBase(hub) NonblockingFlexLzApp(_lzEndpoint, msg.sender, remoteChainIds, remoteProxies) {
+  ) ModuleBase(hub) LzApp(_lzEndpoint, msg.sender, remoteChainIds, remoteProxies) {
     zroPaymentAddress = address(0);
-    sourceChainId = _sourceChainId;
   }
 
   /**
@@ -70,7 +70,7 @@ contract LZGatedFollowModule is FollowValidatorFollowModuleBase, NonblockingFlex
       uint16 chainId
     ) = abi.decode(data, (address, uint256, uint16));
 
-    if (address(tokenContract) == address(0) || (chainId != sourceChainId && _lzRemoteLookup[chainId].length == 0)) {
+    if (address(tokenContract) == address(0) || _lzRemoteLookup[chainId].length == 0) {
       revert Errors.InitParamsInvalid();
     }
 
@@ -87,39 +87,15 @@ contract LZGatedFollowModule is FollowValidatorFollowModuleBase, NonblockingFlex
 
   /**
    * @dev Process a follow by:
-   * - if the profile has set gated follow data on this chain, just do the token balance check inline and revert if the
-   * threshold is not met
-   * - else send the payload to our cross-chain proxy on the remote chain to do the check and asynchronously return the
-   * result.
-   * NOTE: we must have an intermediate state to report back to the LensHub contract
+   * - checking that we have already validated the follower through our `LZGatedProxy` on a remote chain
    */
   function processFollow(
     address follower,
     uint256 profileId,
     bytes calldata // data
-  ) external override onlyHub returns (bool pendingAsyncRequest) {
-    if (gatedFollowPerProfile[profileId].remoteChainId == sourceChainId) {
-      if (!_checkThreshold(follower, gatedFollowPerProfile[profileId])) {
-        revert Errors.FollowInvalid();
-      }
-
-      pendingAsyncRequest = false;
-    } else {
-      // make the async balance check, expect result in `#_nonblockingLzReceive`
-      _lzSend(
-        gatedFollowPerProfile[profileId].remoteChainId,
-        abi.encode(
-          follower,
-          gatedFollowPerProfile[profileId].remoteContract,
-          profileId,
-          gatedFollowPerProfile[profileId].balanceThreshold
-        ),
-        payable(follower),
-        zroPaymentAddress,
-        bytes("")
-      );
-
-      pendingAsyncRequest = true;
+  ) external view override onlyHub {
+    if (!validatedFollowers[profileId][follower]) {
+      revert Errors.FollowInvalid();
     }
   }
 
@@ -134,12 +110,10 @@ contract LZGatedFollowModule is FollowValidatorFollowModuleBase, NonblockingFlex
   ) external override {}
 
   /**
-   * @dev Callback from our `LZGatedProxy` contract deployed on a remote chain
-   * - contains the result of the token balance check in `shouldFollow`
-   * - make a call to the LensHub to complete the async follow request (they should require that there is a pending
-   * follow request, process, and clear it out)
+   * @dev Callback from our `LZGatedProxy` contract deployed on a remote chain, signals that the follow is validated
+   * NOTE: this function is actually non-blocking in that it catches errors thrown from LensHub
    */
-  function _nonblockingLzReceive(
+  function _blockingLzReceive(
     uint16 _srcChainId,
     bytes memory _srcAddress,
     uint64 _nonce,
@@ -147,27 +121,25 @@ contract LZGatedFollowModule is FollowValidatorFollowModuleBase, NonblockingFlex
   ) internal override {
     (
       address follower,
+      address token,
       uint256 profileId,
-      bool shouldFollow
-    ) = abi.decode(data, (address, uint256, bool));
+      uint256 threshold,
+      DataTypes.FollowWithSigData memory followSig
+    ) = abi.decode(_payload, (address, address, uint256, uint256, DataTypes.FollowWithSigData));
 
-    ILensHub(HUB).completePendingFollow(follower, profileId, shouldFollow);
-  }
+    GatedFollowData memory data = gatedFollowPerProfile[profileId];
 
-  /**
-   * @dev Check that `account` meets the threshold of held tokens in `tokenContract`; we use the standard `#balanceOf`
-   * function signature for ERC721 and ERC20
-   */
-  function _checkThreshold(address account, GatedFollowData memory data) private returns (bool) {
-    (
-      bool success,
-      bytes memory result
-    ) = address(data.remoteContract).call(abi.encodeWithSignature("balanceOf(address)", account));
+    if (data.remoteChainId != _srcChainId || data.balanceThreshold != threshold || data.remoteContract != token) {
+      emit MessageFailed(_srcChainId, _srcAddress, _nonce, _payload, 'FollowInvalid');
+    }
 
-    if (!success) return false;
+    validatedFollowers[profileId][follower] = true;
 
-    (uint256 balance) = abi.decode(result, (uint256));
+    try ILensHub(HUB).followWithSig(followSig) {}
+    catch Error (string memory reason) {
+      emit MessageFailed(_srcChainId, _srcAddress, _nonce, _payload, reason);
+    }
 
-    return balance >= data.balanceThreshold;
+    delete validatedFollowers[profileId][follower];
   }
 }

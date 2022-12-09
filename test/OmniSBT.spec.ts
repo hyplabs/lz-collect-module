@@ -8,8 +8,6 @@ import {
   LZEndpointMock,
   LZEndpointMock__factory,
 } from '../typechain-types'
-import { abi } from './../build/contracts/OmniSBT.sol/OmniSBT.json';
-import parseLogs from './utils/parseLogs';
 import { ZERO_ADDRESS } from './lens/helpers/constants';
 
 const CHAIN_ID = 123;

@@ -113,14 +113,138 @@ export async function getFollowWithSigParts(
   return await getSig(wallet, msgParams);
 }
 
-async function getSig(wallet: VoidSigner, msgParams: {
-  domain: any;
-  types: any;
-  value: any;
-}): Promise<{ v: number; r: string; s: string }> {
-  const sig = await wallet._signTypedData(msgParams.domain, msgParams.types, msgParams.value);
-  return utils.splitSignature(sig);
+export async function getCommentWithSigParts(
+  wallet: VoidSigner,
+  profileId: BigNumberish,
+  contentURI: string,
+  profileIdPointed: BigNumberish,
+  pubIdPointed: string,
+  referenceModuleData: Bytes | string,
+  collectModule: string,
+  collectModuleInitData: Bytes | string,
+  referenceModule: string,
+  referenceModuleInitData: Bytes | string,
+  nonce: number,
+  deadline: string
+): Promise<{ v: number; r: string; s: string }> {
+  const msgParams = buildCommentWithSigParams(
+    profileId,
+    contentURI,
+    profileIdPointed,
+    pubIdPointed,
+    referenceModuleData,
+    collectModule,
+    collectModuleInitData,
+    referenceModule,
+    referenceModuleInitData,
+    nonce,
+    deadline
+  );
+  return await getSig(wallet, msgParams);
 }
+
+export async function getMirrorWithSigParts(
+  wallet: VoidSigner,
+  profileId: BigNumberish,
+  profileIdPointed: BigNumberish,
+  pubIdPointed: string,
+  referenceModuleData: Bytes | string,
+  referenceModule: string,
+  referenceModuleInitData: Bytes | string,
+  nonce: number,
+  deadline: string
+): Promise<{ v: number; r: string; s: string }> {
+  const msgParams = buildMirrorWithSigParams(
+    profileId,
+    profileIdPointed,
+    pubIdPointed,
+    referenceModuleData,
+    referenceModule,
+    referenceModuleInitData,
+    nonce,
+    deadline
+  );
+  return await getSig(wallet, msgParams);
+}
+
+const buildCommentWithSigParams = (
+  profileId: BigNumberish,
+  contentURI: string,
+  profileIdPointed: BigNumberish,
+  pubIdPointed: string,
+  referenceModuleData: Bytes | string,
+  collectModule: string,
+  collectModuleInitData: Bytes | string,
+  referenceModule: string,
+  referenceModuleInitData: Bytes | string,
+  nonce: number,
+  deadline: string
+) => ({
+  types: {
+    CommentWithSig: [
+      { name: 'profileId', type: 'uint256' },
+      { name: 'contentURI', type: 'string' },
+      { name: 'profileIdPointed', type: 'uint256' },
+      { name: 'pubIdPointed', type: 'uint256' },
+      { name: 'referenceModuleData', type: 'bytes' },
+      { name: 'collectModule', type: 'address' },
+      { name: 'collectModuleInitData', type: 'bytes' },
+      { name: 'referenceModule', type: 'address' },
+      { name: 'referenceModuleInitData', type: 'bytes' },
+      { name: 'nonce', type: 'uint256' },
+      { name: 'deadline', type: 'uint256' },
+    ],
+  },
+  domain: domain(),
+  value: {
+    profileId: profileId,
+    contentURI: contentURI,
+    profileIdPointed: profileIdPointed,
+    pubIdPointed: pubIdPointed,
+    referenceModuleData: referenceModuleData,
+    collectModule: collectModule,
+    collectModuleInitData: collectModuleInitData,
+    referenceModule: referenceModule,
+    referenceModuleInitData: referenceModuleInitData,
+    nonce: nonce,
+    deadline: deadline,
+  },
+});
+
+const buildMirrorWithSigParams = (
+  profileId: BigNumberish,
+  profileIdPointed: BigNumberish,
+  pubIdPointed: string,
+  referenceModuleData: Bytes | string,
+  referenceModule: string,
+  referenceModuleInitData: Bytes | string,
+  nonce: number,
+  deadline: string
+) => ({
+  types: {
+    MirrorWithSig: [
+      { name: 'profileId', type: 'uint256' },
+      { name: 'profileIdPointed', type: 'uint256' },
+      { name: 'pubIdPointed', type: 'uint256' },
+      { name: 'referenceModuleData', type: 'bytes' },
+      { name: 'referenceModule', type: 'address' },
+      { name: 'referenceModuleInitData', type: 'bytes' },
+      { name: 'nonce', type: 'uint256' },
+      { name: 'deadline', type: 'uint256' },
+    ],
+  },
+  domain: domain(),
+  value: {
+    profileId: profileId,
+    profileIdPointed: profileIdPointed,
+    pubIdPointed: pubIdPointed,
+    referenceModuleData: referenceModuleData,
+    referenceModule: referenceModule,
+    referenceModuleInitData: referenceModuleInitData,
+    nonce: nonce,
+    deadline: deadline,
+  },
+});
 
 const buildFollowWithSigParams = (
   profileIds: string[] | number[],
@@ -144,6 +268,15 @@ const buildFollowWithSigParams = (
     deadline: deadline,
   },
 });
+
+async function getSig(wallet: VoidSigner, msgParams: {
+  domain: any;
+  types: any;
+  value: any;
+}): Promise<{ v: number; r: string; s: string }> {
+  const sig = await wallet._signTypedData(msgParams.domain, msgParams.types, msgParams.value);
+  return utils.splitSignature(sig);
+}
 
 function domain(): { name: string; version: string; chainId: number; verifyingContract: string } {
   return {

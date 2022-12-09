@@ -84,6 +84,8 @@ makeSuiteCleanRoom('LZGatedFollowModule', function () {
       lzEndpoint.address,
       REMOTE_CHAIN_ID,
       followModuleAddress,
+      ZERO_ADDRESS, // _remoteReferenceModule
+      ZERO_ADDRESS // _remoteCollectModule
     );
     followModule = await new LZGatedFollowModule__factory(deployer).deploy(
       lensHub.address,
@@ -186,7 +188,7 @@ makeSuiteCleanRoom('LZGatedFollowModule', function () {
     });
   });
 
-  describe('#processFollow (triggered from LZGatedProxy#validateAndRelayWithSig)', () => {
+  describe('#processFollow (triggered from LZGatedProxy#relayFollowWithSig)', () => {
     let followWithSigData;
 
     beforeEach(async() => {
@@ -228,7 +230,8 @@ makeSuiteCleanRoom('LZGatedFollowModule', function () {
       await expect(
         lzGatedProxy
           .connect(user)
-          .validateAndRelayWithSig(
+          .relayFollowWithSig(
+            userAddress,
             FIRST_PROFILE_ID,
             erc721.address,
             BALANCE_THRESHOLD,
@@ -241,7 +244,8 @@ makeSuiteCleanRoom('LZGatedFollowModule', function () {
       await expect(
         lzGatedProxy
           .connect(user)
-          .validateAndRelayWithSig(
+          .relayFollowWithSig(
+            userAddress,
             FIRST_PROFILE_ID,
             lzEndpoint.address,
             BALANCE_THRESHOLD,
@@ -255,7 +259,8 @@ makeSuiteCleanRoom('LZGatedFollowModule', function () {
 
       const tx = await lzGatedProxy
         .connect(user)
-        .validateAndRelayWithSig(
+        .relayFollowWithSig(
+          userAddress,
           FIRST_PROFILE_ID,
           erc721.address,
           0,
@@ -263,7 +268,7 @@ makeSuiteCleanRoom('LZGatedFollowModule', function () {
         );
 
       const messageFailedReason = getNonBlockingError(await tx.wait());
-      expect(messageFailedReason).to.equal('FollowInvalid');
+      expect(messageFailedReason).to.equal('InvalidRemoteInput');
     });
 
 
@@ -272,7 +277,8 @@ makeSuiteCleanRoom('LZGatedFollowModule', function () {
 
       const tx = await lzGatedProxy
         .connect(user)
-        .validateAndRelayWithSig(
+        .relayFollowWithSig(
+          userAddress,
           FIRST_PROFILE_ID,
           erc20.address,
           BALANCE_THRESHOLD,
@@ -280,7 +286,7 @@ makeSuiteCleanRoom('LZGatedFollowModule', function () {
         );
 
       const messageFailedReason = getNonBlockingError(await tx.wait());
-      expect(messageFailedReason).to.equal('FollowInvalid');
+      expect(messageFailedReason).to.equal('InvalidRemoteInput');
     });
 
     it('processes a valid follow', async () => {
@@ -288,7 +294,8 @@ makeSuiteCleanRoom('LZGatedFollowModule', function () {
 
       const tx = await lzGatedProxy
         .connect(user)
-        .validateAndRelayWithSig(
+        .relayFollowWithSig(
+          userAddress,
           FIRST_PROFILE_ID,
           erc721.address,
           BALANCE_THRESHOLD,
@@ -313,7 +320,8 @@ makeSuiteCleanRoom('LZGatedFollowModule', function () {
 
       await lzGatedProxy
         .connect(user)
-        .validateAndRelayWithSig(
+        .relayFollowWithSig(
+          userAddress,
           FIRST_PROFILE_ID,
           erc721.address,
           BALANCE_THRESHOLD,
@@ -323,7 +331,8 @@ makeSuiteCleanRoom('LZGatedFollowModule', function () {
       await expect(
         lzGatedProxy
           .connect(user)
-          .validateAndRelayWithSig(
+          .relayFollowWithSig(
+            userAddress,
             FIRST_PROFILE_ID,
             erc721.address,
             BALANCE_THRESHOLD,

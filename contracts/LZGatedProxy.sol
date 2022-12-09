@@ -14,34 +14,47 @@ contract LZGatedProxy is SimpleLzApp {
   error InsufficientBalance();
 
   address public zroPaymentAddress; // ZRO payment address
+  bytes public remoteFollowModule; // LZGatedFollowModule
+  bytes public remoteReferenceModule; // LZGatedReferenceModule
+  bytes public remoteCollectModule; // LZGatedCollectModule
 
   /**
    * @dev contract constructor
    * @param _lzEndpoint: The LZ endpoint contract deployed on this chain
    * @param _remoteChainId: remote chain id to be set as the trusted remote
-   * @param _remoteContract: remote contract to be set as the trusted remote
+   * @param _remoteFollowModule: trusted follow module on the remote chain
+   * @param _remoteReferenceModule: trusted reference module on the remote chain
+   * @param _remoteCollectModule: trusted collect module on the remote chain
    * NOTE: we set `zroPaymentAddress` to the zero address as it does not make sense to make this contract ownable only
    * to set this variable once their token is out, logistics, etc.
    */
   constructor(
     address _lzEndpoint,
     uint16 _remoteChainId,
-    bytes memory _remoteContract
-  ) SimpleLzApp(_lzEndpoint, msg.sender, _remoteChainId, _remoteContract) {
+    bytes memory _remoteFollowModule,
+    bytes memory _remoteReferenceModule,
+    bytes memory _remoteCollectModule
+  ) SimpleLzApp(_lzEndpoint, msg.sender, _remoteChainId) {
     zroPaymentAddress = address(0);
+
+    remoteFollowModule = _remoteFollowModule;
+    remoteReferenceModule = _remoteReferenceModule;
+    remoteCollectModule = _remoteCollectModule;
   }
 
-  function validateAndRelayWithSig(
+  function relayFollowWithSig(
+    address follower,
     uint256 profileId,
     address tokenContract,
     uint256 balanceThreshold,
     DataTypes.FollowWithSigData memory followSig
   ) external {
-    if (!_checkThreshold(msg.sender, tokenContract, balanceThreshold)) { revert InsufficientBalance(); }
+    if (!_checkThreshold(follower, tokenContract, balanceThreshold)) { revert InsufficientBalance(); }
 
     _lzSend(
+      remoteFollowModule,
       abi.encode(
-        msg.sender,
+        follower,
         tokenContract,
         profileId,
         balanceThreshold,
@@ -52,6 +65,89 @@ contract LZGatedProxy is SimpleLzApp {
       bytes("")
     );
   }
+
+  function relayCommentWithSig(
+    address sender,
+    uint256 profileId,
+    uint256 profileIdPointed,
+    uint256 pubIdPointed,
+    address tokenContract,
+    uint256 balanceThreshold,
+    DataTypes.CommentWithSigData memory commentSig
+  ) external {
+    if (!_checkThreshold(sender, tokenContract, balanceThreshold)) { revert InsufficientBalance(); }
+
+    _lzSend(
+      remoteReferenceModule,
+      abi.encode(
+        true, // isComment
+        tokenContract,
+        profileId,
+        profileIdPointed,
+        pubIdPointed,
+        balanceThreshold,
+        commentSig
+      ),
+      payable(msg.sender),
+      zroPaymentAddress,
+      bytes("")
+    );
+  }
+
+  function relayMirrorWithSig(
+    address sender,
+    uint256 profileId,
+    uint256 profileIdPointed,
+    uint256 pubIdPointed,
+    address tokenContract,
+    uint256 balanceThreshold,
+    DataTypes.MirrorWithSigData memory mirrorSig
+  ) external {
+    if (!_checkThreshold(sender, tokenContract, balanceThreshold)) { revert InsufficientBalance(); }
+
+    _lzSend(
+      remoteReferenceModule,
+      abi.encode(
+        false, // isComment
+        tokenContract,
+        profileId,
+        profileIdPointed,
+        pubIdPointed,
+        balanceThreshold,
+        mirrorSig
+      ),
+      payable(msg.sender),
+      zroPaymentAddress,
+      bytes("")
+    );
+  }
+
+  // @TODO
+  // function relayCollectWithSig(
+  //   address collector,
+  //   uint256 profileId,
+  //   uint256 pubId,
+  //   address tokenContract,
+  //   uint256 balanceThreshold,
+  //   DataTypes.CollectWithSigData memory collectSig
+  // ) external {
+  //   if (!_checkThreshold(collector, tokenContract, balanceThreshold)) { revert InsufficientBalance(); }
+  //
+  //   _lzSend(
+  //     remoteCollectModule,
+  //     abi.encode(
+  //       tokenContract,
+  //       collector,
+  //       profileId,
+  //       pubId,
+  //       balanceThreshold,
+  //       collectSig
+  //     ),
+  //     payable(msg.sender),
+  //     zroPaymentAddress,
+  //     bytes("")
+  //   );
+  // }
 
   /**
    * @dev Check that `account` meets the threshold of held tokens in `tokenContract`; we use the standard `#balanceOf`

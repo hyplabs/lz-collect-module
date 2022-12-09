@@ -130,7 +130,8 @@ contract LZGatedFollowModule is FollowValidatorFollowModuleBase, LzApp {
     GatedFollowData memory data = gatedFollowPerProfile[profileId];
 
     if (data.remoteChainId != _srcChainId || data.balanceThreshold != threshold || data.remoteContract != token) {
-      emit MessageFailed(_srcChainId, _srcAddress, _nonce, _payload, 'FollowInvalid');
+      emit MessageFailed(_srcChainId, _srcAddress, _nonce, _payload, 'InvalidRemoteInput');
+      return;
     }
 
     validatedFollowers[profileId][follower] = true;

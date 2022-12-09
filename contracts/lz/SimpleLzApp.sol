@@ -8,7 +8,8 @@ import "./interfaces/ILayerZeroEndpoint.sol";
 
 /**
  * @title SimpleLzApp
- * @notice Simple, blocking LayerZero-enabled contract that only has one trusted remote chainId and contract
+ * @notice Simple, blocking LayerZero-enabled contract that only has one trusted remote chainId and a hardcoded
+ * module contracts
  */
 abstract contract SimpleLzApp is Owned, ILayerZeroUserApplicationConfig {
   error NotZeroAddress();
@@ -16,24 +17,22 @@ abstract contract SimpleLzApp is Owned, ILayerZeroUserApplicationConfig {
   ILayerZeroEndpoint public immutable lzEndpoint;
 
   uint16 public remoteChainId;
-  bytes public remoteContract;
 
   /**
    * @dev contract constructor
    * @param _lzEndpoint: The LZ endpoint contract deployed on this chain
    * @param _remoteChainId: remote chain id to be set as the trusted remote
-   * @param _remoteContract: remote contract to be set as the trusted remote
    */
-  constructor(address _lzEndpoint, address owner, uint16 _remoteChainId, bytes memory _remoteContract) Owned(owner) {
+  constructor(address _lzEndpoint, address owner, uint16 _remoteChainId) Owned(owner) {
     if (_lzEndpoint == address(0)) { revert NotZeroAddress(); }
 
     lzEndpoint = ILayerZeroEndpoint(_lzEndpoint);
 
     remoteChainId = _remoteChainId;
-    remoteContract = _remoteContract;
   }
 
   function _lzSend(
+    bytes memory _remoteContract,
     bytes memory _payload,
     address payable _refundAddress,
     address _zroPaymentAddress,
@@ -41,7 +40,7 @@ abstract contract SimpleLzApp is Owned, ILayerZeroUserApplicationConfig {
   ) internal virtual {
     lzEndpoint.send{value: msg.value}(
       remoteChainId,
-      remoteContract,
+      _remoteContract,
       _payload,
       _refundAddress,
       _zroPaymentAddress,

@@ -7,7 +7,7 @@ import "./lz/SimpleLzApp.sol";
 
 /**
  * @title LZGatedProxy
- * @notice This contract acts as a proxy for `LZGatedFollowModule` and `LZGatedReference` in order to read
+ * @notice This contract acts as a proxy for `LZGatedFollowModule` and `LZGatedReferenceModule` in order to read
  * token balances from remote contracts on any chain supported by layerzero.
  */
 contract LZGatedProxy is SimpleLzApp {

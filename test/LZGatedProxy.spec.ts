@@ -9,6 +9,8 @@ import {
   LZGatedFollowModule__factory,
   LZGatedReferenceModule,
   LZGatedReferenceModule__factory,
+  LZGatedCollectModule,
+  LZGatedCollectModule__factory,
   LZGatedProxy,
   LZGatedProxy__factory,
   LZEndpointMock,
@@ -23,6 +25,7 @@ describe('LZGatedProxy', () => {
   let lzEndpoint: LZEndpointMock;
   let followModule: LZGatedFollowModule;
   let referenceModule: LZGatedReferenceModule;
+  let collectModule: LZGatedCollectModule;
   let deployer: Signer, user: Signer, userTwo: Signer, userThree: Signer;
   let deployerAddress: string, userAddress: string, userTwoAddress: string;
 
@@ -36,13 +39,14 @@ describe('LZGatedProxy', () => {
     const transactionCount = await deployer.getTransactionCount();
     const followModuleAddress = getContractAddress({ from: deployerAddress, nonce: transactionCount + 1 });
     const referenceModuleAddress = getContractAddress({ from: deployerAddress, nonce: transactionCount + 2 });
+    const collectModuleAddress = getContractAddress({ from: deployerAddress, nonce: transactionCount + 3 });
 
     lzGatedProxy = await new LZGatedProxy__factory(deployer).deploy(
       lzEndpoint.address,
       REMOTE_CHAIN_ID,
       followModuleAddress,
-      referenceModuleAddress, // _remoteReferenceModule
-      ZERO_ADDRESS // _remoteCollectModule
+      referenceModuleAddress,
+      collectModuleAddress
     );
     followModule = await new LZGatedFollowModule__factory(deployer).deploy(
       lzGatedProxy.address, // lensHub does not matter
@@ -56,10 +60,17 @@ describe('LZGatedProxy', () => {
       [REMOTE_CHAIN_ID],
       [lzGatedProxy.address]
     );
+    collectModule = await new LZGatedCollectModule__factory(deployer).deploy(
+      lzGatedProxy.address, // lensHub does not matter
+      lzEndpoint.address,
+      [REMOTE_CHAIN_ID],
+      [lzGatedProxy.address]
+    );
 
     // use same lz endpoint mock
     await lzEndpoint.setDestLzEndpoint(referenceModule.address, lzEndpoint.address);
     await lzEndpoint.setDestLzEndpoint(followModule.address, lzEndpoint.address);
+    await lzEndpoint.setDestLzEndpoint(collectModule.address, lzEndpoint.address);
     await lzEndpoint.setDestLzEndpoint(lzGatedProxy.address, lzEndpoint.address);
   });
 
@@ -81,11 +92,13 @@ describe('LZGatedProxy', () => {
       const endpoint = await lzGatedProxy.lzEndpoint();
       const followModuleAddress = await lzGatedProxy.remoteFollowModule();
       const remoteReferenceModule = await lzGatedProxy.remoteReferenceModule();
+      const remoteCollectModule = await lzGatedProxy.remoteCollectModule();
 
       expect(owner).to.equal(deployerAddress);
       expect(endpoint).to.equal(lzEndpoint.address);
       expect(utils.getAddress(followModuleAddress)).to.equal(followModule.address);
       expect(utils.getAddress(remoteReferenceModule)).to.equal(referenceModule.address);
+      expect(utils.getAddress(remoteCollectModule)).to.equal(collectModule.address);
     });
   });
 
@@ -94,4 +107,6 @@ describe('LZGatedProxy', () => {
   describe.skip('#relayCommentWithSig (part of LZGatedReferenceModule.spec.ts)', () => {});
 
   describe.skip('#relayMirrorWithSig (part of LZGatedReferenceModule.spec.ts)', () => {});
+
+  describe.skip('#relayCollectWithSig (part of LZGatedCollectModule.spec.ts)', () => {});
 });

@@ -12,25 +12,24 @@ import {LzApp} from "./lz/LzApp.sol";
 
 /**
  * @title LZGatedFollowModule
- * @author Hypotenuse Labs
  *
  * @notice A Lens Follow Module that allows profile holders to gate their following with ERC20 or ERC721 balances held
  * on other chains.
  */
 contract LZGatedFollowModule is FollowValidatorFollowModuleBase, LzApp {
-  address public zroPaymentAddress; // ZRO payment address
-
   struct GatedFollowData {
-    address remoteContract; // the remote contract to read from
+    address tokenContract; // the remote contract to read from
     uint256 balanceThreshold; // result of balanceOf() should be greater than or equal to
     uint16 remoteChainId; // the remote chainId to read against
   }
 
-  mapping (uint256 => GatedFollowData) public gatedFollowPerProfile; // profileId => gated follow data
-  mapping (uint256 => mapping (address => bool)) public validatedFollowers; // profileId => address which has been validated
+  error NotAccepting();
 
   event InitFollowModule(uint256 indexed profileId, address tokenContract, uint256 balanceThreshold, uint16 chainId);
   event MessageFailed(uint16 _srcChainId, bytes _srcAddress, uint64 _nonce, bytes _payload, string _reason);
+
+  mapping (uint256 => GatedFollowData) public gatedFollowPerProfile; // profileId => gated follow data
+  mapping (uint256 => mapping (address => bool)) public validatedFollowers; // profileId => address which has been validated
 
   /**
    * @dev contract constructor
@@ -38,17 +37,13 @@ contract LZGatedFollowModule is FollowValidatorFollowModuleBase, LzApp {
    * @param _lzEndpoint: LayerZero endpoint on this chain to relay messages
    * @param remoteChainIds: whitelisted destination chain ids (supported by LayerZero)
    * @param remoteProxies: proxy destination contracts (deployed by us)
-   * NOTE: we set `zroPaymentAddress` to the zero address as it does not make sense to make this module ownable only to
-   * set this variable once their token is out, logistics, etc.
    */
   constructor(
     address hub,
     address _lzEndpoint,
     uint16[] memory remoteChainIds,
     bytes[] memory remoteProxies
-  ) ModuleBase(hub) LzApp(_lzEndpoint, msg.sender, remoteChainIds, remoteProxies) {
-    zroPaymentAddress = address(0);
-  }
+  ) ModuleBase(hub) LzApp(_lzEndpoint, msg.sender, remoteChainIds, remoteProxies) {}
 
   /**
    * @notice Initialize this follow module for the given profile
@@ -74,9 +69,10 @@ contract LZGatedFollowModule is FollowValidatorFollowModuleBase, LzApp {
       revert Errors.InitParamsInvalid();
     }
 
+    // anyone can read this data before attempting to follow the given profile
     gatedFollowPerProfile[profileId] = GatedFollowData({
       remoteChainId: chainId,
-      remoteContract: tokenContract,
+      tokenContract: tokenContract,
       balanceThreshold: balanceThreshold
     });
 
@@ -110,8 +106,13 @@ contract LZGatedFollowModule is FollowValidatorFollowModuleBase, LzApp {
   ) external override {}
 
   /**
+   * @dev not accepting native tokens
+   */
+  receive() external payable { revert NotAccepting(); }
+
+  /**
    * @dev Callback from our `LZGatedProxy` contract deployed on a remote chain, signals that the follow is validated
-   * NOTE: this function is actually non-blocking in that it catches errors thrown from LensHub
+   * NOTE: this function is actually non-blocking in that it does not explicitly revert and catches external errors
    */
   function _blockingLzReceive(
     uint16 _srcChainId,
@@ -129,13 +130,16 @@ contract LZGatedFollowModule is FollowValidatorFollowModuleBase, LzApp {
 
     GatedFollowData memory data = gatedFollowPerProfile[profileId];
 
-    if (data.remoteChainId != _srcChainId || data.balanceThreshold != threshold || data.remoteContract != token) {
+    // validate that remote check was against the contract/threshold defined
+    if (data.remoteChainId != _srcChainId || data.balanceThreshold != threshold || data.tokenContract != token) {
       emit MessageFailed(_srcChainId, _srcAddress, _nonce, _payload, 'InvalidRemoteInput');
       return;
     }
 
+    // allow the follow in the callback to #processFollow
     validatedFollowers[profileId][follower] = true;
 
+    // use the signature to execute the follow
     try ILensHub(HUB).followWithSig(followSig) {}
     catch Error (string memory reason) {
       emit MessageFailed(_srcChainId, _srcAddress, _nonce, _payload, reason);

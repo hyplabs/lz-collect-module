@@ -13,16 +13,15 @@ import "hardhat/console.sol";
 
 /**
  * @title LZGatedReferenceModule
- * @author Hypotenuse Labs
  *
- * @notice A Lens Reference Module that allows publication creators to gate who can mirror their post with ERC20 or
- * ERC721 balances held on other chains.
+ * @notice A Lens Reference Module that allows publication creators to gate who can comment/mirror their post with
+ * ERC20 or ERC721 balances held on other chains.
  */
 contract LZGatedReferenceModule is FollowValidationModuleBase, IReferenceModule, LzApp {
-  address public zroPaymentAddress; // ZRO payment address
+  error NotAccepting();
 
   struct GatedReferenceData {
-    address remoteContract; // the remote contract to read from
+    address tokenContract; // the remote contract to read from
     uint256 balanceThreshold; // result of balanceOf() should be greater than or equal to
     uint16 remoteChainId; // the remote chainId to read against
   }
@@ -41,17 +40,13 @@ contract LZGatedReferenceModule is FollowValidationModuleBase, IReferenceModule,
    * @param _lzEndpoint: LayerZero endpoint on this chain to relay messages
    * @param remoteChainIds: whitelisted destination chain ids (supported by LayerZero)
    * @param remoteProxies: proxy destination contracts (deployed by us)
-   * NOTE: we set `zroPaymentAddress` to the zero address as it does not make sense to make this module ownable only to
-   * set this variable once their token is out, logistics, etc.
    */
   constructor(
     address hub,
     address _lzEndpoint,
     uint16[] memory remoteChainIds,
     bytes[] memory remoteProxies
-  ) ModuleBase(hub) LzApp(_lzEndpoint, msg.sender, remoteChainIds, remoteProxies) {
-    zroPaymentAddress = address(0);
-  }
+  ) ModuleBase(hub) LzApp(_lzEndpoint, msg.sender, remoteChainIds, remoteProxies) {}
 
   /**
    * @notice Initialize this reference module for the given profile/publication
@@ -78,9 +73,10 @@ contract LZGatedReferenceModule is FollowValidationModuleBase, IReferenceModule,
       revert Errors.InitParamsInvalid();
     }
 
+    // anyone can read this data before attempting to follow the given profile
     gatedReferencedDataPerPub[profileId][pubId] = GatedReferenceData({
       remoteChainId: chainId,
-      remoteContract: tokenContract,
+      tokenContract: tokenContract,
       balanceThreshold: balanceThreshold
     });
 
@@ -120,9 +116,14 @@ contract LZGatedReferenceModule is FollowValidationModuleBase, IReferenceModule,
   }
 
   /**
+   * @dev not accepting native tokens
+   */
+  receive() external payable { revert NotAccepting(); }
+
+  /**
    * @dev Callback from our `LZGatedProxy` contract deployed on a remote chain, signals that the comment/mirror
    * is validated
-   * NOTE: this function is actually non-blocking in that it catches errors thrown from LensHub
+   * NOTE: this function is actually non-blocking in that it does not explicitly revert and catches external errors
    */
   function _blockingLzReceive(
     uint16 _srcChainId,
@@ -141,7 +142,8 @@ contract LZGatedReferenceModule is FollowValidationModuleBase, IReferenceModule,
 
     GatedReferenceData memory data = gatedReferencedDataPerPub[profileIdPointed][pubIdPointed];
 
-    if (data.remoteChainId != _srcChainId || data.balanceThreshold != threshold || data.remoteContract != token) {
+    // validate that remote check was against the contract/threshold defined
+    if (data.remoteChainId != _srcChainId || data.balanceThreshold != threshold || data.tokenContract != token) {
       emit MessageFailed(_srcChainId, _srcAddress, _nonce, _payload, 'InvalidRemoteInput');
       return;
     }
@@ -149,6 +151,7 @@ contract LZGatedReferenceModule is FollowValidationModuleBase, IReferenceModule,
     // @TODO: hash the vars vs deeply nested?
     validatedReferencers[profileIdPointed][pubIdPointed][profileId] = true;
 
+    // parse the payload for either #commentWithSig or #mirrorWithSig
     string memory error = isComment ? _handleComment(_payload) : _handleMirror(_payload);
 
     delete validatedReferencers[profileIdPointed][pubIdPointed][profileId];

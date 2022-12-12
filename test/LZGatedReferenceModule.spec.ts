@@ -191,7 +191,7 @@ makeSuiteCleanRoom('LZGatedReferenceModule', function () {
         const res = await referenceModule.gatedReferencedDataPerPub(FIRST_PROFILE_ID, 1);
 
         expect(res.balanceThreshold.toNumber()).to.equal(BALANCE_THRESHOLD);
-        expect(res.remoteContract).to.equal(erc721.address);
+        expect(res.tokenContract).to.equal(erc721.address);
         expect(res.remoteChainId).to.equal(REMOTE_CHAIN_ID);
       });
 

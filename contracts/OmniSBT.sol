@@ -17,7 +17,6 @@ contract OmniSBT is IOmniSBT, URIStorage, ERC4973, LzApp {
   error OnlyTokenOwner();
 
   address public collectModule; // the FollowCampaignModule contract that can create collections and mint
-  address public zroPaymentAddress; // ZRO payment address
   uint256 public collections; // counter for collections; 1-based
 
   mapping (uint256 => uint256) public tokenToCollectionId; // _tokenIdCounter => collections
@@ -45,7 +44,6 @@ contract OmniSBT is IOmniSBT, URIStorage, ERC4973, LzApp {
     LzApp(_lzEndpoint, msg.sender, remoteChainIds, remoteContracts)
     ERC4973("Omni Soulbound Token", "OMNI-SBT")
   {
-    zroPaymentAddress = address(0);
     isSource = _isSource;
   }
 
@@ -86,7 +84,6 @@ contract OmniSBT is IOmniSBT, URIStorage, ERC4973, LzApp {
         chainId,
         abi.encode(collector, collectionId, _tokenIdCounter, URIStorage.tokenURI(collectionId)),
         payable(collector),
-        zroPaymentAddress,
         bytes("")
       );
 
@@ -128,14 +125,6 @@ contract OmniSBT is IOmniSBT, URIStorage, ERC4973, LzApp {
    */
   function setCollectModule(address _collectModule) external onlyOwner {
     collectModule = _collectModule;
-  }
-
-  /**
-   * @notice allows the contract owner to set the ZRO payment address
-   * @param _zroPaymentAddress: ZRO token address used as alternative payment for relayed messages
-   */
-  function setZroPaymentAddress(address _zroPaymentAddress) external onlyOwner {
-    zroPaymentAddress = _zroPaymentAddress;
   }
 
   /**

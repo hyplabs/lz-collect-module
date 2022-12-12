@@ -8,7 +8,8 @@ import "./interfaces/ILayerZeroUserApplicationConfig.sol";
 import "./interfaces/ILayerZeroEndpoint.sol";
 
 /**
- *
+ * @title LzApp
+ * @notice LayerZero-enabled contract that can have multiple remote chain ids 
  */
 abstract contract LzApp is Owned, ILayerZeroReceiver, ILayerZeroUserApplicationConfig {
   error NotZeroAddress();
@@ -18,6 +19,8 @@ abstract contract LzApp is Owned, ILayerZeroReceiver, ILayerZeroUserApplicationC
   error OnlyTrustedRemote();
 
   ILayerZeroEndpoint public immutable lzEndpoint;
+
+  address public zroPaymentAddress; // the address of the ZRO token holder who would pay for the transaction
 
   mapping (uint16 => bytes) internal _lzRemoteLookup; // chainId (lz) => endpoint
 
@@ -46,25 +49,6 @@ abstract contract LzApp is Owned, ILayerZeroReceiver, ILayerZeroUserApplicationC
     }
   }
 
-  function _lzSend(
-    uint16 _dstChainId,
-    bytes memory _payload,
-    address payable _refundAddress,
-    address _zroPaymentAddress,
-    bytes memory _adapterParams
-  ) internal virtual {
-    if (_lzRemoteLookup[_dstChainId].length == 0) { revert RemoteNotFound(); }
-
-    lzEndpoint.send{value: msg.value}(
-      _dstChainId,
-      _lzRemoteLookup[_dstChainId],
-      _payload,
-      _refundAddress,
-      _zroPaymentAddress,
-      _adapterParams
-    );
-  }
-
   function lzReceive(
     uint16 _srcChainId,
     bytes memory _srcAddress,
@@ -80,14 +64,6 @@ abstract contract LzApp is Owned, ILayerZeroReceiver, ILayerZeroUserApplicationC
 
     _blockingLzReceive(_srcChainId, _srcAddress, _nonce, _payload);
   }
-
-  // @dev to be overriden by the concrete class
-  function _blockingLzReceive(
-    uint16 _srcChainId,
-    bytes memory _srcAddress,
-    uint64 _nonce,
-    bytes memory _payload
-  ) internal virtual;
 
   function setTrustedRemote(uint16 _srcChainId, bytes calldata _srcAddress) external onlyOwner {
     _lzRemoteLookup[_srcChainId] = _srcAddress;
@@ -111,6 +87,10 @@ abstract contract LzApp is Owned, ILayerZeroReceiver, ILayerZeroUserApplicationC
     lzEndpoint.setReceiveVersion(_version);
   }
 
+  function setZroPaymentAddress(address _zroPaymentAddress) external onlyOwner {
+    zroPaymentAddress = _zroPaymentAddress;
+}
+
   function forceResumeReceive(uint16 _srcChainId, bytes calldata _srcAddress) external override onlyOwner {
     lzEndpoint.forceResumeReceive(_srcChainId, _srcAddress);
   }
@@ -118,4 +98,30 @@ abstract contract LzApp is Owned, ILayerZeroReceiver, ILayerZeroUserApplicationC
   function getConfig(uint16 _version, uint16 _chainId, address, uint _configType) external view returns (bytes memory) {
     return lzEndpoint.getConfig(_version, _chainId, address(this), _configType);
   }
+
+  function _lzSend(
+    uint16 _dstChainId,
+    bytes memory _payload,
+    address payable _refundAddress,
+    bytes memory _adapterParams
+  ) internal virtual {
+    if (_lzRemoteLookup[_dstChainId].length == 0) { revert RemoteNotFound(); }
+
+    lzEndpoint.send{value: msg.value}(
+      _dstChainId,
+      _lzRemoteLookup[_dstChainId],
+      _payload,
+      _refundAddress,
+      zroPaymentAddress,
+      _adapterParams
+    );
+  }
+
+  // @dev to be overriden by the concrete class
+  function _blockingLzReceive(
+    uint16 _srcChainId,
+    bytes memory _srcAddress,
+    uint64 _nonce,
+    bytes memory _payload
+  ) internal virtual;
 }

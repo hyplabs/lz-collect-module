@@ -172,7 +172,7 @@ makeSuiteCleanRoom('LZGatedFollowModule', function () {
         const res = await followModule.gatedFollowPerProfile(FIRST_PROFILE_ID);
 
         expect(res.balanceThreshold.toNumber()).to.equal(BALANCE_THRESHOLD);
-        expect(res.remoteContract).to.equal(erc721.address);
+        expect(res.tokenContract).to.equal(erc721.address);
         expect(res.remoteChainId).to.equal(REMOTE_CHAIN_ID);
       });
 

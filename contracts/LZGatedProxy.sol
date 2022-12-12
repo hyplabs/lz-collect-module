@@ -77,7 +77,7 @@ contract LZGatedProxy is SimpleLzApp {
    * @notice validate a token balance on this chain before relaying the intent to comment on a Lens post on the remote
    * chain.
    * NOTE: callers of this function MUST pass the exact values for `tokenContract` and `balanceThreshold` returned from
-   * the call to LZGatedReferenceModule.gatedReferencedDataPerPub(profileIdPointed, pubIdPointed) - or the transaction
+   * the call to LZGatedReferenceModule.gatedReferenceDataPerPub(profileIdPointed, pubIdPointed) - or the transaction
    * on the remote chain WILL revert.
    * @param sender: the account wishing to perform the comment action
    * @param profileId: the id of the profile wishing to comment
@@ -118,7 +118,7 @@ contract LZGatedProxy is SimpleLzApp {
    * @notice validate a token balance on this chain before relaying the intent to mirror a Lens post on the remote
    * chain.
    * NOTE: callers of this function MUST pass the exact values for `tokenContract` and `balanceThreshold` returned from
-   * the call to LZGatedReferenceModule.gatedReferencedDataPerPub(profileIdPointed, pubIdPointed) - or the transaction
+   * the call to LZGatedReferenceModule.gatedReferenceDataPerPub(profileIdPointed, pubIdPointed) - or the transaction
    * on the remote chain WILL revert.
    * @param sender: the account wishing to perform the mirror action
    * @param profileId: the id of the profile wishing to mirror
@@ -155,31 +155,43 @@ contract LZGatedProxy is SimpleLzApp {
     );
   }
 
-  // @TODO
-  // function relayCollectWithSig(
-  //   address collector,
-  //   uint256 profileId,
-  //   uint256 pubId,
-  //   address tokenContract,
-  //   uint256 balanceThreshold,
-  //   DataTypes.CollectWithSigData memory collectSig
-  // ) external {
-  //   if (!_checkThreshold(collector, tokenContract, balanceThreshold)) { revert InsufficientBalance(); }
-  //
-  //   _lzSend(
-  //     remoteCollectModule,
-  //     abi.encode(
-  //       tokenContract,
-  //       collector,
-  //       profileId,
-  //       pubId,
-  //       balanceThreshold,
-  //       collectSig
-  //     ),
-  //     payable(msg.sender),
-  //     bytes("")
-  //   );
-  // }
+  /**
+   * @notice validate a token balance on this chain before relaying the intent to collect a Lens post on the remote
+   * chain.
+   * NOTE: callers of this function MUST pass the exact values for `tokenContract` and `balanceThreshold` returned from
+   * the call to LZGatedCollectModule.gatedCollectDataPerPub(profileId, pubId) - or the transaction
+   * on the remote chain WILL revert.
+   * @param collector: the account wishing to perform the collect action
+   * @param profileId: the id of the profile wishing to collect
+   * @param pubId: the id of the post
+   * @param tokenContract: the ERC20/ERC721 contract set by the `profileId` to check a balance against
+   * @param balanceThreshold: the amount of tokens required in order for a successful follow
+   * @param collectSig: the collect signature expected by the LensHub
+   */
+  function relayCollectWithSig(
+    address collector,
+    uint256 profileId,
+    uint256 pubId,
+    address tokenContract,
+    uint256 balanceThreshold,
+    DataTypes.CollectWithSigData memory collectSig
+  ) external {
+    if (!_checkThreshold(collector, tokenContract, balanceThreshold)) { revert InsufficientBalance(); }
+
+    _lzSend(
+      remoteCollectModule,
+      abi.encode(
+        tokenContract,
+        collector,
+        profileId,
+        pubId,
+        balanceThreshold,
+        collectSig
+      ),
+      payable(msg.sender),
+      bytes("")
+    );
+  }
 
   /**
    * @dev not accepting native tokens

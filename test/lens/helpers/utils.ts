@@ -269,6 +269,44 @@ const buildFollowWithSigParams = (
   },
 });
 
+export async function getCollectWithSigParts(
+  wallet: VoidSigner,
+  profileId: BigNumberish,
+  pubId: string,
+  data: Bytes | string,
+  nonce: number,
+  deadline: string
+): Promise<{ v: number; r: string; s: string }> {
+  const msgParams = buildCollectWithSigParams(profileId, pubId, data, nonce, deadline);
+  return await getSig(wallet, msgParams);
+}
+
+const buildCollectWithSigParams = (
+  profileId: BigNumberish,
+  pubId: string,
+  data: Bytes | string,
+  nonce: number,
+  deadline: string
+) => ({
+  types: {
+    CollectWithSig: [
+      { name: 'profileId', type: 'uint256' },
+      { name: 'pubId', type: 'uint256' },
+      { name: 'data', type: 'bytes' },
+      { name: 'nonce', type: 'uint256' },
+      { name: 'deadline', type: 'uint256' },
+    ],
+  },
+  domain: domain(),
+  value: {
+    profileId: profileId,
+    pubId: pubId,
+    data: data,
+    nonce: nonce,
+    deadline: deadline,
+  },
+});
+
 async function getSig(wallet: VoidSigner, msgParams: {
   domain: any;
   types: any;

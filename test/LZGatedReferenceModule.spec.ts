@@ -188,7 +188,7 @@ makeSuiteCleanRoom('LZGatedReferenceModule', function () {
       });
 
       it('sets storage', async () => {
-        const res = await referenceModule.gatedReferencedDataPerPub(FIRST_PROFILE_ID, 1);
+        const res = await referenceModule.gatedReferenceDataPerPub(FIRST_PROFILE_ID, 1);
 
         expect(res.balanceThreshold.toNumber()).to.equal(BALANCE_THRESHOLD);
         expect(res.tokenContract).to.equal(erc721.address);

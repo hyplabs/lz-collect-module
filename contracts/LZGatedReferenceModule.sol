@@ -18,21 +18,20 @@ import "hardhat/console.sol";
  * ERC20 or ERC721 balances held on other chains.
  */
 contract LZGatedReferenceModule is FollowValidationModuleBase, IReferenceModule, LzApp {
-  error NotAccepting();
-
   struct GatedReferenceData {
     address tokenContract; // the remote contract to read from
     uint256 balanceThreshold; // result of balanceOf() should be greater than or equal to
     uint16 remoteChainId; // the remote chainId to read against
   }
 
-  mapping (uint256 => mapping (uint256 => GatedReferenceData)) public gatedReferencedDataPerPub; // profileId => pubId => gated reference data
-  mapping (uint256 => mapping (uint256 => mapping (uint256 => bool))) public validatedReferencers; // profileIdPointed => pubId => profiles which have been validated
-
-  event InitReferenceModule(uint256 indexed profileId, address tokenContract, uint256 balanceThreshold, uint16 chainId);
+  event InitReferenceModule(uint256 indexed profileId, uint256 indexed pubId, address tokenContract, uint256 balanceThreshold, uint16 chainId);
   event MessageFailed(uint16 _srcChainId, bytes _srcAddress, uint64 _nonce, bytes _payload, string _reason);
 
   error CommentOrMirrorInvalid();
+  error NotAccepting();
+
+  mapping (uint256 => mapping (uint256 => GatedReferenceData)) public gatedReferenceDataPerPub; // profileId => pubId => gated reference data
+  mapping (uint256 => mapping (uint256 => mapping (uint256 => bool))) public validatedReferencers; // profileIdPointed => pubId => profiles which have been validated
 
   /**
    * @dev contract constructor
@@ -74,13 +73,13 @@ contract LZGatedReferenceModule is FollowValidationModuleBase, IReferenceModule,
     }
 
     // anyone can read this data before attempting to follow the given profile
-    gatedReferencedDataPerPub[profileId][pubId] = GatedReferenceData({
+    gatedReferenceDataPerPub[profileId][pubId] = GatedReferenceData({
       remoteChainId: chainId,
       tokenContract: tokenContract,
       balanceThreshold: balanceThreshold
     });
 
-    emit InitReferenceModule(profileId, tokenContract, balanceThreshold, chainId);
+    emit InitReferenceModule(profileId, pubId, tokenContract, balanceThreshold, chainId);
 
     return new bytes(0);
   }
@@ -140,7 +139,7 @@ contract LZGatedReferenceModule is FollowValidationModuleBase, IReferenceModule,
       uint256 threshold,
     ) = abi.decode(_payload, (bool, address, uint256, uint256, uint256, uint256, bytes));
 
-    GatedReferenceData memory data = gatedReferencedDataPerPub[profileIdPointed][pubIdPointed];
+    GatedReferenceData memory data = gatedReferenceDataPerPub[profileIdPointed][pubIdPointed];
 
     // validate that remote check was against the contract/threshold defined
     if (data.remoteChainId != _srcChainId || data.balanceThreshold != threshold || data.tokenContract != token) {

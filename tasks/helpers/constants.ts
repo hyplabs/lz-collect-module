@@ -2,7 +2,7 @@ export const MAX_UINT256 = '0xffffffffffffffffffffffffffffffffffffffffffffffffff
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
 export const LZ_SOURCE_CHAINS = ['mumbai', 'polygon'];
-export const LZ_DESTINATION_CHAINS = ['fantom_testnet', 'fantom'];
+export const LZ_DESTINATION_CHAINS = ['fantom_testnet', 'fantom', 'goerli', 'optimismTestnet'];
 
 // chainId: value not related to EVM IDs
 // endpoint: LZEndpoint contract deployed on the network
@@ -14,7 +14,7 @@ export const LZ_CONFIG = {
     remote: 'mumbai'
   },
   mumbai: {
-    chainId: '10009',
+    chainId: '10109',
     endpoint: '0xf69186dfBa60DdB133E91E9A4B5673624293d8F8',
     remotes: ['bsc_testnet']
   },
@@ -27,7 +27,7 @@ export const LZ_CONFIG = {
 
 export const LZ_CONFIG_GATED_MODULES = {
   mumbai: {
-    chainId: '10009',
+    chainId: '10109',
     endpoint: '0xf69186dfBa60DdB133E91E9A4B5673624293d8F8',
     remotes: ['goerli', 'optimismTestnet']
   },
@@ -48,3 +48,9 @@ export const LZ_CONFIG_GATED_MODULES = {
   //   remote: 'mumbai'
   // }
 };
+
+// @TODO: these should change per setup
+export const TOKEN_CONTRACT = '0xDBF49B20eC2E48ef4CeEb79927eA4Ac2eFc2c961'; // goerli
+export const TOKEN_THRESHOLD = '1';
+export const TOKEN_CHAIN_ID = LZ_CONFIG_GATED_MODULES.goerli.chainId;
+export const SANDBOX_USER_PROFILE_ID = '67';

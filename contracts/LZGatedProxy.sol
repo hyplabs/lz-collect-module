@@ -56,7 +56,7 @@ contract LZGatedProxy is SimpleLzApp {
     address tokenContract,
     uint256 balanceThreshold,
     DataTypes.FollowWithSigData memory followSig
-  ) external {
+  ) external payable {
     if (!_checkThreshold(follower, tokenContract, balanceThreshold)) { revert InsufficientBalance(); }
 
     _lzSend(
@@ -95,7 +95,7 @@ contract LZGatedProxy is SimpleLzApp {
     address tokenContract,
     uint256 balanceThreshold,
     DataTypes.CommentWithSigData memory commentSig
-  ) external {
+  ) external payable {
     if (!_checkThreshold(sender, tokenContract, balanceThreshold)) { revert InsufficientBalance(); }
 
     _lzSend(
@@ -136,7 +136,7 @@ contract LZGatedProxy is SimpleLzApp {
     address tokenContract,
     uint256 balanceThreshold,
     DataTypes.MirrorWithSigData memory mirrorSig
-  ) external {
+  ) external payable {
     if (!_checkThreshold(sender, tokenContract, balanceThreshold)) { revert InsufficientBalance(); }
 
     _lzSend(
@@ -175,7 +175,7 @@ contract LZGatedProxy is SimpleLzApp {
     address tokenContract,
     uint256 balanceThreshold,
     DataTypes.CollectWithSigData memory collectSig
-  ) external {
+  ) external payable {
     if (!_checkThreshold(collector, tokenContract, balanceThreshold)) { revert InsufficientBalance(); }
 
     _lzSend(

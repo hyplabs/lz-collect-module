@@ -1,5 +1,5 @@
 import { task } from 'hardhat/config';
-import { LZ_DESTINATION_CHAINS, LZ_CONFIG } from './helpers/constants';
+import { LZ_CONFIG } from './helpers/constants';
 import deployContract from './helpers/deployContract';
 
 task('deploy-token-remote', 'deploys OmniSBT on the destination chain').setAction(async ({}, hre) => {

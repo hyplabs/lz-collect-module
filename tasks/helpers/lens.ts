@@ -1,5 +1,12 @@
-import {  Contract, Signer } from "ethers";
+import {
+  Contract,
+  Signer,
+  BigNumber,
+  utils,
+  Bytes,
+} from "ethers";
 import LensHub from './abi/LensHub.json';
+import { HARDHAT_CHAINID } from './../../test/lens/helpers/constants';
 
 const lensAddresses = {
   'mumbai': {
@@ -13,15 +20,92 @@ const collectAbi = [
   "function collect(uint256 profileId, uint256 pubId, bytes calldata data) external returns (uint256)"
 ];
 
-export const getLensHub = async (key: string = 'lensHub proxy', provider: any, networkName: string = 'mumbai') => (
+export const getLensHub = (key: string = 'lensHub proxy', provider: any, networkName: string = 'mumbai') => (
   new Contract(lensAddresses[networkName][key], collectAbi, provider)
 );
 
-export const getLensHubDeployed = async (key: string = 'lensHub proxy', signer: Signer, networkName: string = 'mumbai') => {
-  const contract = new Contract(lensAddresses[networkName][key], LensHub.abi, signer.provider);
+export const getLensHubDeployed = (
+  key: string = 'lensHub proxy',
+  networkName: string = 'mumbai',
+  provider: any,
+) => (
+  new Contract(lensAddresses[networkName][key], LensHub.abi, provider)
+);
 
-  return contract.connect(signer);
+type FollowWithSigDataProps = {
+  chainId: number | undefined;
+  wallet: any; // Signer
+  lensHubAddress: string;
+  profileIds: string[] | number[];
+  datas: Bytes[] | string[];
+  nonce: number;
+  deadline: string;
+  follower: string;
 };
+
+const buildFollowWithSigParams = (
+  chainId: number | undefined,
+  lensHubAddress: string,
+  profileIds: string[] | number[],
+  datas: Bytes[] | string[],
+  nonce: number,
+  deadline: string
+) => ({
+  types: {
+    FollowWithSig: [
+      { name: 'profileIds', type: 'uint256[]' },
+      { name: 'datas', type: 'bytes[]' },
+      { name: 'nonce', type: 'uint256' },
+      { name: 'deadline', type: 'uint256' },
+    ],
+  },
+  domain: {
+    name: 'Lens Protocol Profiles',
+    version: '1',
+    chainId: chainId || HARDHAT_CHAINID,
+    verifyingContract: lensHubAddress,
+  },
+  value: {
+    profileIds: profileIds,
+    datas: datas,
+    nonce: nonce,
+    deadline: deadline,
+  },
+});
+
+export const getFollowWithSigParts = async ({
+  chainId = HARDHAT_CHAINID,
+  wallet,
+  lensHubAddress,
+  profileIds,
+  datas,
+  nonce,
+  deadline,
+  follower
+}: FollowWithSigDataProps) => {
+  const msgParams = buildFollowWithSigParams(
+    chainId,
+    lensHubAddress,
+    profileIds,
+    datas,
+    nonce,
+    deadline
+  );
+  const sig = await wallet._signTypedData(msgParams.domain, msgParams.types, msgParams.value);
+  const { v, r, s } = utils.splitSignature(sig);
+
+  return {
+    follower,
+    profileIds,
+    datas,
+    sig: {
+      v,
+      r,
+      s,
+      deadline,
+    },
+  };
+}
 
 // testnet accounts
 export const accounts = [

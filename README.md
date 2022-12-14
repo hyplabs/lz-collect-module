@@ -23,7 +23,7 @@
 - the contract makes the token balance check against the ERC20/ERC721 contract defined
 - if all good, relay the payload to our module contract on polygon
 
-## read the [docs](./blog/blog.md)
+## blog post describing the `LZCollectModule` in detail [here](./blog/blog.md)
 
 ## setup + compile contracts
 ```

@@ -4,6 +4,9 @@ export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 export const LZ_SOURCE_CHAINS = ['mumbai', 'polygon'];
 export const LZ_DESTINATION_CHAINS = ['fantom_testnet', 'fantom'];
 
+// chainId: value not related to EVM IDs
+// endpoint: LZEndpoint contract deployed on the network
+// remote: the remote chain to be configured to send/receive messages from
 export const LZ_CONFIG = {
   fantom_testnet: {
     chainId: '10012',
@@ -20,4 +23,28 @@ export const LZ_CONFIG = {
     endpoint: '0x6Fcb97553D41516Cb228ac03FdC8B9a0a9df04A1',
     remote: 'mumbai'
   }
+};
+
+export const LZ_CONFIG_GATED_MODULES = {
+  mumbai: {
+    chainId: '10009',
+    endpoint: '0xf69186dfBa60DdB133E91E9A4B5673624293d8F8',
+    remotes: ['goerli', 'optimismTestnet']
+  },
+  goerli: {
+    chainId: '10121',
+    endpoint: '0xbfD2135BFfbb0B5378b56643c2Df8a87552Bfa23',
+    remote: 'mumbai'
+  },
+  optimismTestnet: {
+    chainId: '10132',
+    endpoint: '0xae92d5aD7583AD66E49A0c67BAd18F6ba52dDDc1',
+    remote: 'mumbai'
+  },
+  // would need to add their hardhat plugin for deployment
+  // zkSync_testnet: {
+  //   chainId: '10147',
+  //   endpoint: '0xeaa8d1D0E736C59F7F0211C272d25f7AEC9FCB51',
+  //   remote: 'mumbai'
+  // }
 };

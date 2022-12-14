@@ -8,7 +8,7 @@ task('stub-collect-post', 'collects our lens post').setAction(async ({}, hre) =>
   const ethers = hre.ethers;
   const networkName = hre.network.name;
   const [_, governance] = await ethers.getSigners(); // uses priv key defined in this hardhat config
-  const lensHub = await getLensHub(governance.provider);
+  const lensHub = await getLensHub('lensHub proxy', governance.provider);
 
   const { maxFeePerGas, maxPriorityFeePerGas } = await lensHub.provider.getFeeData();
 

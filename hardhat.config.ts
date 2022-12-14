@@ -95,11 +95,15 @@ const config = {
       chainId: 97,
       accounts: [process.env.DEPLOYER_PRIVATE_KEY]
     },
-    // // not supported by LayerZero yet
-    // optimism_goerli: {
-    //   url: process.env.ALCHEMY_OPTIMISM_GOERLI_URL,
-    //   accounts: [process.env.DEPLOYER_PRIVATE_KEY]
-    // },
+    goerli: {
+      url: process.env.ALCHEMY_GOERLI_URL,
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY, ...lensTestWallets()]
+    },
+    optimismTestnet: {
+      url: process.env.ALCHEMY_OPTIMISM_GOERLI_URL,
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY, ...lensTestWallets()],
+      chainId: 420,
+    },
     docker: {
       url: 'http://127.0.0.1:8545',
       accounts: lensTestWallets()

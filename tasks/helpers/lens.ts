@@ -1,9 +1,11 @@
-import {  Contract } from "ethers";
+import {  Contract, Signer } from "ethers";
+import LensHub from './abi/LensHub.json';
 
 const lensAddresses = {
   'mumbai': {
     'interaction logic lib': '0xefd400326635e016CbfCc309725D5B62FD9d3468',
-    'lensHub proxy': '0x60Ae865ee4C725cd04353b5AAb364553f56ceF82'
+    'lensHub proxy': '0x60Ae865ee4C725cd04353b5AAb364553f56ceF82',
+    'lensHub sandbox': '0x7582177F9E536aB0b6c721e11f383C326F2Ad1D5',
   }
 };
 
@@ -11,9 +13,15 @@ const collectAbi = [
   "function collect(uint256 profileId, uint256 pubId, bytes calldata data) external returns (uint256)"
 ];
 
-export const getLensHub = async (provider: any, networkName: string = 'mumbai') => (
-  new Contract(lensAddresses[networkName]['lensHub proxy'], collectAbi, provider)
+export const getLensHub = async (key: string = 'lensHub proxy', provider: any, networkName: string = 'mumbai') => (
+  new Contract(lensAddresses[networkName][key], collectAbi, provider)
 );
+
+export const getLensHubDeployed = async (key: string = 'lensHub proxy', signer: Signer, networkName: string = 'mumbai') => {
+  const contract = new Contract(lensAddresses[networkName][key], LensHub.abi, signer.provider);
+
+  return contract.connect(signer);
+};
 
 // testnet accounts
 export const accounts = [

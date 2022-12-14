@@ -167,7 +167,7 @@ export async function getMirrorWithSigParts(
   return await getSig(wallet, msgParams);
 }
 
-const buildCommentWithSigParams = (
+export const buildCommentWithSigParams = (
   profileId: BigNumberish,
   contentURI: string,
   profileIdPointed: BigNumberish,
@@ -211,7 +211,7 @@ const buildCommentWithSigParams = (
   },
 });
 
-const buildMirrorWithSigParams = (
+export const buildMirrorWithSigParams = (
   profileId: BigNumberish,
   profileIdPointed: BigNumberish,
   pubIdPointed: string,
@@ -246,7 +246,7 @@ const buildMirrorWithSigParams = (
   },
 });
 
-const buildFollowWithSigParams = (
+export const buildFollowWithSigParams = (
   profileIds: string[] | number[],
   datas: Bytes[] | string[],
   nonce: number,
@@ -281,7 +281,7 @@ export async function getCollectWithSigParts(
   return await getSig(wallet, msgParams);
 }
 
-const buildCollectWithSigParams = (
+export const buildCollectWithSigParams = (
   profileId: BigNumberish,
   pubId: string,
   data: Bytes | string,

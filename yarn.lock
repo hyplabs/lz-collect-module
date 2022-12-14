@@ -7302,6 +7302,11 @@ process@^0.11.10:
   resolved "https://registry.yarnpkg.com/process/-/process-0.11.10.tgz#7332300e840161bda3e69a1d1d91a7d4bc16f182"
   integrity sha512-cdGef/drWFoydD1JsMzuFf8100nZl+GT+yacc2bEced5f9Rjk4z+WtFUTBu9PhOi9j/jfmBPu0mMEY4wIdAF8A==
 
+promise-limit@^2.7.0:
+  version "2.7.0"
+  resolved "https://registry.yarnpkg.com/promise-limit/-/promise-limit-2.7.0.tgz#eb5737c33342a030eaeaecea9b3d3a93cb592b26"
+  integrity sha512-7nJ6v5lnJsXwGprnGXga4wx6d1POjvi5Qmf1ivTRxTjH4Z/9Czja/UCMLVmB9N93GeWOU93XaFaEt6jbuoagNw==
+
 promise-to-callback@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/promise-to-callback/-/promise-to-callback-1.0.0.tgz#5d2a749010bfb67d963598fcd3960746a68feef7"

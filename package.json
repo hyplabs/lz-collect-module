@@ -25,7 +25,8 @@
     "@aave/lens-protocol": "^1.0.2",
     "@openzeppelin/contracts": "^4.3.2",
     "@rari-capital/solmate": "^6.4.0",
-    "@tenderly/hardhat-tenderly": "^1.1.5"
+    "@tenderly/hardhat-tenderly": "^1.1.5",
+    "promise-limit": "^2.7.0"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "npm:hardhat-deploy-ethers",

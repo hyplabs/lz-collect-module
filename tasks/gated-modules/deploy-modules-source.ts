@@ -1,55 +1,58 @@
 import { task } from 'hardhat/config';
 import { LZ_CONFIG_GATED_MODULES } from './../helpers/constants';
 import deployContract from './../helpers/deployContract';
-import { getLensHubDeployed } from './../helpers/lens';
+import { getLensHubDeployed, getMockSandboxGovernance } from './../helpers/lens';
 import getContract from './../helpers/getContract';
 
 task('deploy-modules-source', 'deploys our Lens modules on the source chain').setAction(async ({}, hre) => {
   const ethers = hre.ethers;
   const networkName = hre.network.name;
-  const [deployer, governance] = await ethers.getSigners();
+  const [deployer] = await ethers.getSigners();
 
   if (!LZ_CONFIG_GATED_MODULES[networkName]) throw new Error('invalid network');
 
-  // using the sandbox deployment for module whitelisting
-  const lensHub = await getLensHubDeployed('lensHub sandbox', networkName, governance.provider);
+  const key = networkName === 'mumbai' ? 'lensHub sandbox' : 'lensHub proxy'; // using sandbox for module whitelisting
+  const lensHub = getLensHubDeployed(key, networkName, deployer.provider);
 
-  // const followModule = await deployContract(
-  //   ethers,
-  //   networkName,
-  //   'LZGatedFollowModule',
-  //   [lensHub.address, LZ_CONFIG_GATED_MODULES[networkName].endpoint, [], []]
-  // );
-  //
-  // const referenceModule = await deployContract(
-  //   ethers,
-  //   networkName,
-  //   'LZGatedReferenceModule',
-  //   [lensHub.address, LZ_CONFIG_GATED_MODULES[networkName].endpoint, [], []]
-  // );
-  //
-  // const collectModule = await deployContract(
-  //   ethers,
-  //   networkName,
-  //   'LZGatedCollectModule',
-  //   [lensHub.address, LZ_CONFIG_GATED_MODULES[networkName].endpoint, [], []]
-  // );
+  const followModule = await deployContract(
+    ethers,
+    networkName,
+    'LZGatedFollowModule',
+    [lensHub.address, LZ_CONFIG_GATED_MODULES[networkName].endpoint, [], []]
+  );
 
-  const followModule = await getContract(ethers, 'LZGatedFollowModule', deployer);
-  const referenceModule = await getContract(ethers, 'LZGatedReferenceModule', deployer);
-  const collectModule = await getContract(ethers, 'LZGatedCollectModule', deployer);
+  const referenceModule = await deployContract(
+    ethers,
+    networkName,
+    'LZGatedReferenceModule',
+    [lensHub.address, LZ_CONFIG_GATED_MODULES[networkName].endpoint, [], []]
+  );
 
-  console.log(await governance.getAddress());
-  let tx;
-  console.log('lensHub.whitelistFollowModule()');
-  tx = await lensHub.connect(governance).whitelistFollowModule(followModule.address, true, { gasLimit: 50000 });
-  await tx.wait();
+  const collectModule = await deployContract(
+    ethers,
+    networkName,
+    'LZGatedCollectModule',
+    [lensHub.address, LZ_CONFIG_GATED_MODULES[networkName].endpoint, [], []]
+  );
 
-  console.log('lensHub.whitelistReferenceModule()');
-  tx = await lensHub.connect(governance).whitelistReferenceModule(referenceModule.address, true, { gasLimit: 50000 });
-  await tx.wait();
+  if (networkName === 'mumbai') {
+    const mockSandboxGovernance = getMockSandboxGovernance(deployer.provider);
+    console.log(`whitelisting modules through mock sandbox governance: ${mockSandboxGovernance.address}`);
 
-  console.log('lensHub.whitelistCollectModule()');
-  tx = await lensHub.connect(governance).whitelistCollectModule(collectModule.address, true, { gasLimit: 50000 });
-  await tx.wait();
+    let tx;
+    console.log('mockSandboxGovernance.whitelistFollowModule()');
+    tx = await mockSandboxGovernance.connect(deployer).whitelistFollowModule(followModule.address, true, { gasLimit: 100000 });
+    console.log(`tx: ${tx.hash}`);
+    await tx.wait();
+
+    console.log('mockSandboxGovernance.whitelistReferenceModule()');
+    tx = await mockSandboxGovernance.connect(deployer).whitelistReferenceModule(referenceModule.address, true, { gasLimit: 100000 });
+    console.log(`tx: ${tx.hash}`);
+    await tx.wait();
+
+    console.log('mockSandboxGovernance.whitelistCollectModule()');
+    tx = await mockSandboxGovernance.connect(deployer).whitelistCollectModule(collectModule.address, true, { gasLimit: 100000 });
+    console.log(`tx: ${tx.hash}`);
+    await tx.wait();
+  }
 });

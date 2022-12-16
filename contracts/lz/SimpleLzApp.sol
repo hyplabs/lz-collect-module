@@ -88,7 +88,7 @@ abstract contract SimpleLzApp is Owned, ILayerZeroUserApplicationConfig {
    * @param _adapterParams: the custom adapter params to use in sending this message
    */
   function _lzSend(
-    bytes memory _remoteContract,
+    bytes storage _remoteContract,
     bytes memory _payload,
     address payable _refundAddress,
     bytes memory _adapterParams

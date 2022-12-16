@@ -1,7 +1,7 @@
 import { task } from 'hardhat/config';
 import {
   LZ_CONFIG_GATED_MODULES,
-  SANDBOX_USER_PROFILE_ID, // owned by `deployer`
+  SANDBOX_USER_PROFILE_ID,
   TOKEN_CONTRACT,
   TOKEN_THRESHOLD,
   TOKEN_CHAIN_ID,
@@ -13,9 +13,6 @@ task('set-follow-module', 'sets the LZGatedFollowModule on our test profile').se
   const ethers = hre.ethers;
   const networkName = hre.network.name;
   const [deployer] = await ethers.getSigners();
-  const accounts = await ethers.getSigners();
-  console.log(await Promise.all(accounts.map(async(account) => await account.getAddress())));
-  return;
 
   if (!LZ_CONFIG_GATED_MODULES[networkName]) throw new Error('invalid network');
 

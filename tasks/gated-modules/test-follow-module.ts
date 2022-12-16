@@ -19,7 +19,7 @@ const ESTIMATED_FOLLOW_FEE_GWEI = '1000'; // derived from `npx hardhat estimate-
 task('test-follow-module', 'try to folllow a profile which has set their follow module to LZGatedFollowModule').setAction(async ({}, hre) => {
   const ethers = hre.ethers;
   const networkName = hre.network.name;
-  const [deployer] = await ethers.getSigners();
+  const [deployer, governance] = await ethers.getSigners();
 
   if (!(LZ_CONFIG_GATED_MODULES[networkName] && LZ_CONFIG_GATED_MODULES[networkName].remote)) throw new Error('invalid network');
 
@@ -27,12 +27,13 @@ task('test-follow-module', 'try to folllow a profile which has set their follow 
   const provider = new providers.JsonRpcProvider(destination === 'mumbai' ? ALCHEMY_MUMBAI_URL : ALCHEMY_POLYGON_URL);
   const lensHub = await getLensHubDeployed('lensHub sandbox', destination, provider);
   const lzGatedProxy = await getContract(ethers, 'LZGatedProxy', deployer);
-  const followerAddress = await deployer.getAddress();
+
+  const followerAddress = await governance.getAddress();
   const nonce = (await lensHub.sigNonces(followerAddress)).toNumber();
 
   const followWithSigData = await getFollowWithSigParts({
     chainId: hre.network.config.chainId,
-    wallet: deployer,
+    wallet: governance,
     lensHubAddress: lensHub.address,
     profileIds: [SANDBOX_USER_PROFILE_ID_TWO],
     datas: [[]],
@@ -48,7 +49,7 @@ task('test-follow-module', 'try to folllow a profile which has set their follow 
     TOKEN_CONTRACT,
     TOKEN_THRESHOLD,
     followWithSigData,
-    { value: utils.parseUnits(ESTIMATED_FOLLOW_FEE_GWEI, 'gwei'), gasLimit: 100000 }
+    { value: utils.parseUnits(ESTIMATED_FOLLOW_FEE_GWEI, 'gwei'), gasLimit: 210000 }
   );
   console.log(`tx: ${tx.hash}`);
   await tx.wait();

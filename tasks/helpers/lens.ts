@@ -13,11 +13,18 @@ const lensAddresses = {
     'interaction logic lib': '0xefd400326635e016CbfCc309725D5B62FD9d3468',
     'lensHub proxy': '0x60Ae865ee4C725cd04353b5AAb364553f56ceF82',
     'lensHub sandbox': '0x7582177F9E536aB0b6c721e11f383C326F2Ad1D5',
+    'mock sandbox governance': '0x1677d9cc4861f1c85ac7009d5f06f49c928ca2ad',
   }
 };
 
 const collectAbi = [
   "function collect(uint256 profileId, uint256 pubId, bytes calldata data) external returns (uint256)"
+];
+
+const whitelistAbi = [
+  'function whitelistFollowModule(address followModule, bool whitelist)',
+  'function whitelistReferenceModule(address referenceModule, bool whitelist)',
+  'function whitelistCollectModule(address collectModule, bool whitelist)'
 ];
 
 export const getLensHub = (key: string = 'lensHub proxy', provider: any, networkName: string = 'mumbai') => (
@@ -30,6 +37,10 @@ export const getLensHubDeployed = (
   provider: any,
 ) => (
   new Contract(lensAddresses[networkName][key], LensHub.abi, provider)
+);
+
+export const getMockSandboxGovernance = (provider: any) => (
+  new Contract(lensAddresses['mumbai']['mock sandbox governance'], whitelistAbi, provider)
 );
 
 type FollowWithSigDataProps = {

@@ -49,8 +49,11 @@ export const LZ_CONFIG_GATED_MODULES = {
   // }
 };
 
-// @TODO: these should change per setup
-export const TOKEN_CONTRACT = '0xDBF49B20eC2E48ef4CeEb79927eA4Ac2eFc2c961'; // goerli
-export const TOKEN_THRESHOLD = '1';
-export const TOKEN_CHAIN_ID = LZ_CONFIG_GATED_MODULES.goerli.chainId;
-export const SANDBOX_USER_PROFILE_ID = '67';
+// @TODO: all the constants below should change per setup
+
+// https://hq.decent.xyz/5/Editions/0xBbD9a6186C084F7148FA9787E94828faF769c9A3
+export const TOKEN_CONTRACT = '0xBbD9a6186C084F7148FA9787E94828faF769c9A3'; // the ERC721 for token gate
+export const TOKEN_THRESHOLD = '1'; // one token required to follow
+export const TOKEN_CHAIN_ID = LZ_CONFIG_GATED_MODULES.goerli.chainId; // where our `TOKEN_CONTRACT` lives (goerli)
+
+export const SANDBOX_USER_PROFILE_ID = '322'; // thereisnosecondbest2.test

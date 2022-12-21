@@ -22,12 +22,18 @@ task('estimate-fee', 'estimate the fee of sending message from source chain to d
     [await deployer.getAddress(), 1, 1, 'ipfs://QmfJ3ET9FjpV4X9oTi5T2aDZjg4h3pnwr7Au242c5RZH6b']
   );
 
+  const ESTIMATED_GAS = 750_000 // based on some tests...
+  const adapterParams = ethers.utils.defaultAbiCoder.encode(
+    ['uint16', 'uint256'],
+    [1, ESTIMATED_GAS]
+  );
+
   const fees = await endpoint.estimateFees(
     LZ_CONFIG[destination].chainId, // the destination LayerZero chainId
     contractsDeployed.OmniSBT, // your contract address that calls Endpoint.send()
     payload,
     false, // _payInZRO
-    "0x" // default '0x' adapterParams, see: Relayer Adapter Param docs
+    adapterParams // https://layerzero.gitbook.io/docs/evm-guides/advanced/relayer-adapter-parameters 
   );
 
   console.log('payload types', types);

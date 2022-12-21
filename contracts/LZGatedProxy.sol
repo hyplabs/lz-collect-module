@@ -59,6 +59,8 @@ contract LZGatedProxy is SimpleLzApp {
   ) external payable {
     if (!_checkThreshold(follower, tokenContract, balanceThreshold)) { revert InsufficientBalance(); }
 
+    bytes memory customAdapterParams = abi.encode(1, 750_000);
+
     _lzSend(
       remoteFollowModule,
       abi.encode(

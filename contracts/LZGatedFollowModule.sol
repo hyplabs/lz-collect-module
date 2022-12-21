@@ -24,9 +24,6 @@ contract LZGatedFollowModule is FollowValidatorFollowModuleBase, LzApp {
   }
 
   event InitFollowModule(uint256 indexed profileId, address tokenContract, uint256 balanceThreshold, uint16 chainId);
-  event MessageFailed(uint16 _srcChainId, bytes _srcAddress, uint64 _nonce, bytes _payload, string _reason);
-
-  error NotAccepting();
 
   mapping (uint256 => GatedFollowData) public gatedFollowPerProfile; // profileId => gated follow data
   mapping (uint256 => mapping (address => bool)) public validatedFollowers; // profileId => address which has been validated
@@ -106,11 +103,6 @@ contract LZGatedFollowModule is FollowValidatorFollowModuleBase, LzApp {
   ) external override {}
 
   /**
-   * @dev not accepting native tokens
-   */
-  receive() external payable { revert NotAccepting(); }
-
-  /**
    * @dev Callback from our `LZGatedProxy` contract deployed on a remote chain, signals that the follow is validated
    * NOTE: this function is actually non-blocking in that it does not explicitly revert and catches external errors
    */
@@ -139,11 +131,19 @@ contract LZGatedFollowModule is FollowValidatorFollowModuleBase, LzApp {
     // allow the follow in the callback to #processFollow
     validatedFollowers[profileId][follower] = true;
 
-    // use the signature to execute the follow
-    try ILensHub(HUB).followWithSig(followSig) {}
-    catch Error (string memory reason) {
-      emit MessageFailed(_srcChainId, _srcAddress, _nonce, _payload, reason);
-    }
+    ILensHub(HUB).followWithSig(followSig);
+
+    // (bool success, bytes memory reason) = HUB.call(abi.encodeWithSelector(ILensHub.followWithSig.selector, followSig));
+    // // try-catch all errors/exceptions
+    // if (!success) {
+    //   emit MessageFailed(_srcChainId, _srcAddress, _nonce, _payload, reason);
+    // }
+
+    // // use the signature to execute the follow
+    // try ILensHub(HUB).followWithSig(followSig) {}
+    // catch Error (string memory reason) {
+    //   emit MessageFailed(_srcChainId, _srcAddress, _nonce, _payload, reason);
+    // }
 
     delete validatedFollowers[profileId][follower];
   }

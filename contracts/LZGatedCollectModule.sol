@@ -29,9 +29,6 @@ contract LZGatedCollectModule is FollowValidationModuleBase, ICollectModule, LzA
     uint256 balanceThreshold,
     uint16 chainId
   );
-  event MessageFailed(uint16 _srcChainId, bytes _srcAddress, uint64 _nonce, bytes _payload, string _reason);
-
-  error NotAccepting();
 
   mapping (uint256 => mapping (uint256 => GatedCollectData)) public gatedCollectDataPerPub; // profileId => pubId => gated collect data
   mapping (uint256 => mapping (uint256 => mapping (address => bool))) public validatedCollectors; // profileIdPointed => pubId => profiles which have been validated
@@ -101,11 +98,6 @@ contract LZGatedCollectModule is FollowValidationModuleBase, ICollectModule, LzA
       revert Errors.CollectNotAllowed();
     }
   }
-
-  /**
-   * @dev not accepting native tokens
-   */
-  receive() external payable { revert NotAccepting(); }
 
   /**
    * @dev Callback from our `LZGatedProxy` contract deployed on a remote chain, signals that the collect is validated

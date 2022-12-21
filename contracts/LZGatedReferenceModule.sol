@@ -25,10 +25,8 @@ contract LZGatedReferenceModule is FollowValidationModuleBase, IReferenceModule,
   }
 
   event InitReferenceModule(uint256 indexed profileId, uint256 indexed pubId, address tokenContract, uint256 balanceThreshold, uint16 chainId);
-  event MessageFailed(uint16 _srcChainId, bytes _srcAddress, uint64 _nonce, bytes _payload, string _reason);
 
   error CommentOrMirrorInvalid();
-  error NotAccepting();
 
   mapping (uint256 => mapping (uint256 => GatedReferenceData)) public gatedReferenceDataPerPub; // profileId => pubId => gated reference data
   mapping (uint256 => mapping (uint256 => mapping (uint256 => bool))) public validatedReferencers; // profileIdPointed => pubId => profiles which have been validated
@@ -113,11 +111,6 @@ contract LZGatedReferenceModule is FollowValidationModuleBase, IReferenceModule,
       revert CommentOrMirrorInvalid();
     }
   }
-
-  /**
-   * @dev not accepting native tokens
-   */
-  receive() external payable { revert NotAccepting(); }
 
   /**
    * @dev Callback from our `LZGatedProxy` contract deployed on a remote chain, signals that the comment/mirror

@@ -9,7 +9,7 @@ import "./interfaces/ILayerZeroEndpoint.sol";
 
 /**
  * @title LzApp
- * @notice LayerZero-enabled contract that can have multiple remote chain ids 
+ * @notice LayerZero-enabled contract that can have multiple remote chain ids.
  */
 abstract contract LzApp is Owned, ILayerZeroReceiver, ILayerZeroUserApplicationConfig {
   error NotZeroAddress();
@@ -17,6 +17,9 @@ abstract contract LzApp is Owned, ILayerZeroReceiver, ILayerZeroUserApplicationC
   error OnlyEndpoint();
   error RemoteNotFound();
   error OnlyTrustedRemote();
+  error NotAccepting();
+
+  event MessageFailed(uint16 _srcChainId, bytes _srcAddress, uint64 _nonce, bytes _payload, string _reason);
 
   ILayerZeroEndpoint public immutable lzEndpoint;
 
@@ -49,17 +52,33 @@ abstract contract LzApp is Owned, ILayerZeroReceiver, ILayerZeroUserApplicationC
     }
   }
 
+  /**
+   * @dev not accepting native tokens
+   */
+  receive() external virtual payable { revert NotAccepting(); }
+
+  /**
+   * @dev receives a cross-chain message from the lz endpoint contract deployed on this chain
+   * NOTE: this is non-blocking in the sense that it does not explicitly revert, but of course does not catch all
+   * potential errors thrown.
+   * @param _srcChainId: the remote chain id
+   * @param _srcAddress: the remote contract sending the message
+   * @param _nonce: the message nonce
+   * @param _payload: the message payload
+   */
   function lzReceive(
     uint16 _srcChainId,
     bytes memory _srcAddress,
     uint64 _nonce,
     bytes memory _payload
   ) public virtual override {
-    if (msg.sender != address(lzEndpoint)) { revert OnlyEndpoint(); }
+    if (msg.sender != address(lzEndpoint)) {
+      emit MessageFailed(_srcChainId, _srcAddress, _nonce, _payload, 'OnlyEndpoint');
+    }
 
     bytes memory trustedRemote = _lzRemoteLookup[_srcChainId];
     if (_srcAddress.length != trustedRemote.length || keccak256(_srcAddress) != keccak256(trustedRemote)) {
-      revert OnlyTrustedRemote();
+      emit MessageFailed(_srcChainId, _srcAddress, _nonce, _payload, 'OnlyTrustedRemote');
     }
 
     _blockingLzReceive(_srcChainId, _srcAddress, _nonce, _payload);
@@ -89,7 +108,7 @@ abstract contract LzApp is Owned, ILayerZeroReceiver, ILayerZeroUserApplicationC
 
   function setZroPaymentAddress(address _zroPaymentAddress) external onlyOwner {
     zroPaymentAddress = _zroPaymentAddress;
-}
+  }
 
   function forceResumeReceive(uint16 _srcChainId, bytes calldata _srcAddress) external override onlyOwner {
     lzEndpoint.forceResumeReceive(_srcChainId, _srcAddress);

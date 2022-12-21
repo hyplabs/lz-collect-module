@@ -93,9 +93,12 @@ abstract contract SimpleLzApp is Owned, ILayerZeroUserApplicationConfig {
     address payable _refundAddress,
     bytes memory _adapterParams
   ) internal virtual {
+    // remote address concated with local address packed into 40 bytes
+    bytes memory remoteAndLocalAddresses = abi.encodePacked(_remoteContract, address(this));
+
     lzEndpoint.send{value: msg.value}(
       remoteChainId,
-      _remoteContract,
+      remoteAndLocalAddresses,
       _payload,
       _refundAddress,
       zroPaymentAddress,

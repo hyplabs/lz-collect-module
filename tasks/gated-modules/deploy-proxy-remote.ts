@@ -3,8 +3,6 @@ import { LZ_CONFIG_GATED_MODULES } from './../helpers/constants';
 import deployContract from './../helpers/deployContract';
 import { contractsDeployedOn } from './../../scripts/utils/migrations';
 
-const SOURCE_NETWORK_NAME = 'mumbai'; // @TODO: flip to polygon
-
 task('deploy-proxy-remote', 'deploys LZGatedProxy on a remote chain').setAction(async ({}, hre) => {
   const ethers = hre.ethers;
   const networkName = hre.network.name;
@@ -12,17 +10,19 @@ task('deploy-proxy-remote', 'deploys LZGatedProxy on a remote chain').setAction(
 
   if (!LZ_CONFIG_GATED_MODULES[networkName]) throw new Error('invalid network');
 
-  // modules deployed on the source chain
-  const contracts = contractsDeployedOn(SOURCE_NETWORK_NAME);
+  const sourceNetwork = LZ_CONFIG_GATED_MODULES[networkName].remote;
 
-  console.log(`deploying LZGatedProxy on networkName: ${networkName}...`);
+  // modules deployed on the source chain
+  const contracts = contractsDeployedOn(sourceNetwork);
+
+  console.log(`deploying LZGatedProxy on remote: ${networkName} with source: ${sourceNetwork}...`);
   const lzGatedProxy = await deployContract(
     ethers,
     networkName,
     'LZGatedProxy',
     [
       LZ_CONFIG_GATED_MODULES[networkName].endpoint,
-      LZ_CONFIG_GATED_MODULES[SOURCE_NETWORK_NAME].chainId,
+      LZ_CONFIG_GATED_MODULES[sourceNetwork].chainId,
       contracts.LZGatedFollowModule,
       contracts.LZGatedReferenceModule,
       contracts.LZGatedCollectModule

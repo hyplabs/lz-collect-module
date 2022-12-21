@@ -231,8 +231,6 @@ makeSuiteCleanRoom('LZGatedFollowModule', function () {
         lzGatedProxy
           .connect(user)
           .relayFollowWithSig(
-            userAddress,
-            FIRST_PROFILE_ID,
             erc721.address,
             BALANCE_THRESHOLD,
             followWithSigData
@@ -245,8 +243,6 @@ makeSuiteCleanRoom('LZGatedFollowModule', function () {
         lzGatedProxy
           .connect(user)
           .relayFollowWithSig(
-            userAddress,
-            FIRST_PROFILE_ID,
             lzEndpoint.address,
             BALANCE_THRESHOLD,
             followWithSigData
@@ -260,8 +256,6 @@ makeSuiteCleanRoom('LZGatedFollowModule', function () {
       const tx = await lzGatedProxy
         .connect(user)
         .relayFollowWithSig(
-          userAddress,
-          FIRST_PROFILE_ID,
           erc721.address,
           0,
           followWithSigData
@@ -278,8 +272,6 @@ makeSuiteCleanRoom('LZGatedFollowModule', function () {
       const tx = await lzGatedProxy
         .connect(user)
         .relayFollowWithSig(
-          userAddress,
-          FIRST_PROFILE_ID,
           erc20.address,
           BALANCE_THRESHOLD,
           followWithSigData
@@ -289,14 +281,12 @@ makeSuiteCleanRoom('LZGatedFollowModule', function () {
       expect(messageFailedReason).to.equal('InvalidRemoteInput');
     });
 
-    it('processes a valid follow', async () => {
+    it.only('processes a valid follow', async () => {
       await erc721.safeMint(userAddress);
 
       const tx = await lzGatedProxy
         .connect(user)
         .relayFollowWithSig(
-          userAddress,
-          FIRST_PROFILE_ID,
           erc721.address,
           BALANCE_THRESHOLD,
           followWithSigData
@@ -321,8 +311,6 @@ makeSuiteCleanRoom('LZGatedFollowModule', function () {
       await lzGatedProxy
         .connect(user)
         .relayFollowWithSig(
-          userAddress,
-          FIRST_PROFILE_ID,
           erc721.address,
           BALANCE_THRESHOLD,
           followWithSigData
@@ -332,8 +320,6 @@ makeSuiteCleanRoom('LZGatedFollowModule', function () {
         lzGatedProxy
           .connect(user)
           .relayFollowWithSig(
-            userAddress,
-            FIRST_PROFILE_ID,
             erc721.address,
             BALANCE_THRESHOLD,
             followWithSigData

@@ -57,3 +57,4 @@ export const TOKEN_THRESHOLD = '1'; // one token required to follow
 export const TOKEN_CHAIN_ID = LZ_CONFIG_GATED_MODULES.goerli.chainId; // where our `TOKEN_CONTRACT` lives (goerli)
 
 export const SANDBOX_USER_PROFILE_ID = '322'; // thereisnosecondbest2.test
+export const SANDBOX_USER_PROFILE_ID_USER = '329'; // lenstestwalletuser.test

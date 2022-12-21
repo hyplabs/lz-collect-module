@@ -1,5 +1,5 @@
 import { task } from 'hardhat/config';
-import { Contract, utils, Bytes, providers } from 'ethers';
+import { Contract, utils, Bytes, providers, BigNumber } from 'ethers';
 import { contractsDeployed } from './../../scripts/utils/migrations';
 import ILayerZeroMessagingLibrary from './../helpers/ILayerZeroMessagingLibrary.json';
 import { getLensHubDeployed, getFollowWithSigParts } from './../helpers/lens';
@@ -28,12 +28,13 @@ task('estimate-fee', 'estimate the fee of sending the followSig from source chai
 
   const followerAddress = await deployer.getAddress();
   const nonce = (await lensHub.sigNonces(followerAddress)).toNumber();
+  const chainId = parseInt(await hre.getChainId());
 
   const followWithSigData = await getFollowWithSigParts({
-    chainId: hre.network.config.chainId,
+    chainId,
     wallet: deployer,
     lensHubAddress: lensHub.address,
-    profileIds: [SANDBOX_USER_PROFILE_ID],
+    profileIds: [BigNumber.from(SANDBOX_USER_PROFILE_ID)],
     datas: [[]],
     nonce,
     deadline: MAX_UINT256,

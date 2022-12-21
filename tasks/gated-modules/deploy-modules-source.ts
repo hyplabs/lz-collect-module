@@ -21,19 +21,19 @@ task('deploy-modules-source', 'deploys our Lens modules on the source chain').se
     [lensHub.address, LZ_CONFIG_GATED_MODULES[networkName].endpoint, [], []]
   );
 
-  const referenceModule = await deployContract(
-    ethers,
-    networkName,
-    'LZGatedReferenceModule',
-    [lensHub.address, LZ_CONFIG_GATED_MODULES[networkName].endpoint, [], []]
-  );
-
-  const collectModule = await deployContract(
-    ethers,
-    networkName,
-    'LZGatedCollectModule',
-    [lensHub.address, LZ_CONFIG_GATED_MODULES[networkName].endpoint, [], []]
-  );
+  // const referenceModule = await deployContract(
+  //   ethers,
+  //   networkName,
+  //   'LZGatedReferenceModule',
+  //   [lensHub.address, LZ_CONFIG_GATED_MODULES[networkName].endpoint, [], []]
+  // );
+  //
+  // const collectModule = await deployContract(
+  //   ethers,
+  //   networkName,
+  //   'LZGatedCollectModule',
+  //   [lensHub.address, LZ_CONFIG_GATED_MODULES[networkName].endpoint, [], []]
+  // );
 
   if (networkName === 'mumbai') {
     const mockSandboxGovernance = getMockSandboxGovernance(deployer.provider);
@@ -44,15 +44,15 @@ task('deploy-modules-source', 'deploys our Lens modules on the source chain').se
     tx = await mockSandboxGovernance.connect(deployer).whitelistFollowModule(followModule.address, true, { gasLimit: 100000 });
     console.log(`tx: ${tx.hash}`);
     await tx.wait();
-
-    console.log('mockSandboxGovernance.whitelistReferenceModule()');
-    tx = await mockSandboxGovernance.connect(deployer).whitelistReferenceModule(referenceModule.address, true, { gasLimit: 100000 });
-    console.log(`tx: ${tx.hash}`);
-    await tx.wait();
-
-    console.log('mockSandboxGovernance.whitelistCollectModule()');
-    tx = await mockSandboxGovernance.connect(deployer).whitelistCollectModule(collectModule.address, true, { gasLimit: 100000 });
-    console.log(`tx: ${tx.hash}`);
-    await tx.wait();
+    //
+    // console.log('mockSandboxGovernance.whitelistReferenceModule()');
+    // tx = await mockSandboxGovernance.connect(deployer).whitelistReferenceModule(referenceModule.address, true, { gasLimit: 100000 });
+    // console.log(`tx: ${tx.hash}`);
+    // await tx.wait();
+    //
+    // console.log('mockSandboxGovernance.whitelistCollectModule()');
+    // tx = await mockSandboxGovernance.connect(deployer).whitelistCollectModule(collectModule.address, true, { gasLimit: 100000 });
+    // console.log(`tx: ${tx.hash}`);
+    // await tx.wait();
   }
 });

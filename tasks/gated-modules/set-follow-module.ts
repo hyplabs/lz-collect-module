@@ -8,6 +8,7 @@ import {
 } from './../helpers/constants';
 import { getLensHubDeployed } from './../helpers/lens';
 import { contractsDeployed } from './../../scripts/utils/migrations';
+import getContract from './../helpers/getContract';
 
 task('set-follow-module', 'sets the LZGatedFollowModule on our test profile').setAction(async ({}, hre) => {
   const ethers = hre.ethers;
@@ -18,6 +19,8 @@ task('set-follow-module', 'sets the LZGatedFollowModule on our test profile').se
 
   // using the sandbox deployment for module whitelisting
   const lensHub = await getLensHubDeployed('lensHub sandbox', networkName, deployer.provider);
+
+  const followModule = await getContract(ethers, 'LZGatedFollowModule', deployer);
 
   // tokenContract, balanceThreshold, chainId
   const data = ethers.utils.defaultAbiCoder.encode(
@@ -39,4 +42,6 @@ task('set-follow-module', 'sets the LZGatedFollowModule on our test profile').se
   await tx.wait();
 
   console.log('follow module set!');
+  const res = await followModule.gatedFollowPerProfile(SANDBOX_USER_PROFILE_ID);
+  console.log(res);
 });

@@ -8,6 +8,9 @@ import {
 import LensHub from './abi/LensHub.json';
 import { HARDHAT_CHAINID } from './../../test/lens/helpers/constants';
 
+const LENS_DOMAIN_NAME = 'Lens Protocol Profiles';
+const LENS_DOMAIN_VERSION = '1';
+
 const lensAddresses = {
   'mumbai': {
     'interaction logic lib': '0xefd400326635e016CbfCc309725D5B62FD9d3468',
@@ -44,10 +47,10 @@ export const getMockSandboxGovernance = (provider: any) => (
 );
 
 type FollowWithSigDataProps = {
-  chainId: number | undefined;
+  chainId: number;
   wallet: any; // Signer
   lensHubAddress: string;
-  profileIds: string[] | number[];
+  profileIds: BigNumber[] | string[];
   datas: Bytes[] | string[];
   nonce: number;
   deadline: string;
@@ -55,9 +58,9 @@ type FollowWithSigDataProps = {
 };
 
 const buildFollowWithSigParams = (
-  chainId: number | undefined,
+  chainId: number,
   lensHubAddress: string,
-  profileIds: string[] | number[],
+  profileIds: BigNumber[] | string[],
   datas: Bytes[] | string[],
   nonce: number,
   deadline: string
@@ -71,9 +74,9 @@ const buildFollowWithSigParams = (
     ],
   },
   domain: {
-    name: 'Lens Protocol Profiles',
-    version: '1',
-    chainId: chainId || HARDHAT_CHAINID,
+    name: LENS_DOMAIN_NAME,
+    version: LENS_DOMAIN_VERSION,
+    chainId,
     verifyingContract: lensHubAddress,
   },
   value: {
@@ -85,7 +88,7 @@ const buildFollowWithSigParams = (
 });
 
 export const getFollowWithSigParts = async ({
-  chainId = HARDHAT_CHAINID,
+  chainId,
   wallet,
   lensHubAddress,
   profileIds,

@@ -275,11 +275,9 @@ makeSuiteCleanRoom('LZGatedReferenceModule', function () {
           .connect(userTwo)
           .relayCommentWithSig(
             userTwoAddress,
-            FIRST_PROFILE_ID + 1,
-            FIRST_PROFILE_ID,
-            '1',
             erc721.address,
             BALANCE_THRESHOLD,
+            0, // lzCustomGasAmount
             commentWithSigData
           )
       ).to.be.revertedWith('InsufficientBalance');
@@ -291,11 +289,9 @@ makeSuiteCleanRoom('LZGatedReferenceModule', function () {
           .connect(userTwo)
           .relayCommentWithSig(
             userAddress,
-            FIRST_PROFILE_ID + 1,
-            FIRST_PROFILE_ID,
-            '1',
             lzEndpoint.address,
             BALANCE_THRESHOLD,
+            0, // lzCustomGasAmount
             commentWithSigData
           )
       ).to.be.revertedWith('InsufficientBalance');
@@ -308,11 +304,9 @@ makeSuiteCleanRoom('LZGatedReferenceModule', function () {
         .connect(userTwo)
         .relayCommentWithSig(
           userTwoAddress,
-          FIRST_PROFILE_ID + 1,
-          FIRST_PROFILE_ID,
-          '1',
           erc721.address,
           0,
+          0, // lzCustomGasAmount
           commentWithSigData
         );
 
@@ -328,11 +322,9 @@ makeSuiteCleanRoom('LZGatedReferenceModule', function () {
         .connect(userTwo)
         .relayCommentWithSig(
           userTwoAddress,
-          FIRST_PROFILE_ID + 1,
-          FIRST_PROFILE_ID,
-          '1',
           erc20.address,
           BALANCE_THRESHOLD,
+          0, // lzCustomGasAmount
           commentWithSigData
         );
 
@@ -347,11 +339,9 @@ makeSuiteCleanRoom('LZGatedReferenceModule', function () {
         .connect(userTwo)
         .relayCommentWithSig(
           userTwoAddress,
-          FIRST_PROFILE_ID + 1,
-          FIRST_PROFILE_ID,
-          '1',
           erc721.address,
           BALANCE_THRESHOLD,
+          0, // lzCustomGasAmount
           commentWithSigData
         );
       const logs = parseLogsNested(await tx.wait(), abi, LZGatedReferenceModuleABI.abi);
@@ -428,11 +418,9 @@ makeSuiteCleanRoom('LZGatedReferenceModule', function () {
           .connect(userTwo)
           .relayMirrorWithSig(
             userTwoAddress,
-            FIRST_PROFILE_ID + 1,
-            FIRST_PROFILE_ID,
-            '1',
             erc721.address,
             BALANCE_THRESHOLD,
+            0, // lzCustomGasAmount
             mirrorWithSigData
           )
       ).to.be.revertedWith('InsufficientBalance');
@@ -444,11 +432,9 @@ makeSuiteCleanRoom('LZGatedReferenceModule', function () {
           .connect(userTwo)
           .relayMirrorWithSig(
             userTwoAddress,
-            FIRST_PROFILE_ID + 1,
-            FIRST_PROFILE_ID,
-            '1',
             lzEndpoint.address,
             BALANCE_THRESHOLD,
+            0, // lzCustomGasAmount
             mirrorWithSigData
           )
       ).to.be.revertedWith('InsufficientBalance');
@@ -461,11 +447,9 @@ makeSuiteCleanRoom('LZGatedReferenceModule', function () {
         .connect(userTwo)
         .relayMirrorWithSig(
           userTwoAddress,
-          FIRST_PROFILE_ID + 1,
-          FIRST_PROFILE_ID,
-          '1',
           erc721.address,
           0,
+          0, // lzCustomGasAmount
           mirrorWithSigData
         );
 
@@ -481,11 +465,9 @@ makeSuiteCleanRoom('LZGatedReferenceModule', function () {
         .connect(userTwo)
         .relayMirrorWithSig(
           userTwoAddress,
-          FIRST_PROFILE_ID + 1,
-          FIRST_PROFILE_ID,
-          '1',
           erc20.address,
           BALANCE_THRESHOLD,
+          0, // lzCustomGasAmount
           mirrorWithSigData
         );
 
@@ -500,11 +482,9 @@ makeSuiteCleanRoom('LZGatedReferenceModule', function () {
         .connect(userTwo)
         .relayMirrorWithSig(
           userTwoAddress,
-          FIRST_PROFILE_ID + 1,
-          FIRST_PROFILE_ID,
-          '1',
           erc721.address,
           BALANCE_THRESHOLD,
+          0, // lzCustomGasAmount
           mirrorWithSigData
         );
       const logs = parseLogsNested(await tx.wait(), abi, LZGatedReferenceModuleABI.abi);

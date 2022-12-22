@@ -123,30 +123,10 @@ contract LZGatedReferenceModule is FollowValidationModuleBase, IReferenceModule,
     uint64 _nonce,
     bytes memory _payload
   ) internal override {
-    (
-      bool isComment,
-      address token,
-      uint256 profileId,
-      uint256 profileIdPointed,
-      uint256 pubIdPointed,
-      uint256 threshold,
-    ) = abi.decode(_payload, (bool, address, uint256, uint256, uint256, uint256, bytes));
-
-    GatedReferenceData memory data = gatedReferenceDataPerPub[profileIdPointed][pubIdPointed];
-
-    // validate that remote check was against the contract/threshold defined
-    if (data.remoteChainId != _srcChainId || data.balanceThreshold != threshold || data.tokenContract != token) {
-      emit MessageFailed(_srcChainId, _srcAddress, _nonce, _payload, 'InvalidRemoteInput');
-      return;
-    }
-
-    // @TODO: hash the vars vs deeply nested?
-    validatedReferencers[profileIdPointed][pubIdPointed][profileId] = true;
+    (bool isComment,,,) = abi.decode(_payload, (bool, address, uint256, bytes));
 
     // parse the payload for either #commentWithSig or #mirrorWithSig
-    string memory error = isComment ? _handleComment(_payload) : _handleMirror(_payload);
-
-    delete validatedReferencers[profileIdPointed][pubIdPointed][profileId];
+    string memory error = isComment ? _handleComment(_srcChainId, _payload) : _handleMirror(_srcChainId, _payload);
 
     if (bytes(error).length > 0) {
       emit MessageFailed(_srcChainId, _srcAddress, _nonce, _payload, error);
@@ -155,35 +135,59 @@ contract LZGatedReferenceModule is FollowValidationModuleBase, IReferenceModule,
 
   /**
    * @dev Decodes the `payload` for Lens#commentWithSig
-   * @return an error string if the call failed, else empty string
+   * @return error an error string if the call failed, else empty string
    */
-  function _handleComment(bytes memory _payload) internal returns (string memory) {
-    (,,,,,,DataTypes.CommentWithSigData memory commentSig) = abi.decode(
+  function _handleComment(uint16 _srcChainId, bytes memory _payload) internal returns (string memory error) {
+    (,address token, uint256 threshold, DataTypes.CommentWithSigData memory commentSig) = abi.decode(
       _payload,
-      (bool, address, uint256, uint256, uint256, uint256, DataTypes.CommentWithSigData)
+      (bool, address, uint256, DataTypes.CommentWithSigData)
     );
 
-    try ILensHub(HUB).commentWithSig(commentSig) {
-      return "";
-    } catch Error (string memory reason) {
-      return reason;
+    GatedReferenceData memory data = gatedReferenceDataPerPub[commentSig.profileIdPointed][commentSig.pubIdPointed];
+
+    // validate that remote check was against the contract/threshold defined
+    if (data.remoteChainId != _srcChainId || data.balanceThreshold != threshold || data.tokenContract != token) {
+      return error = "InvalidRemoteInput";
     }
+
+    // @TODO: hash the vars vs deeply nested?
+    validatedReferencers[commentSig.profileIdPointed][commentSig.pubIdPointed][commentSig.profileId] = true;
+
+    try ILensHub(HUB).commentWithSig(commentSig) {
+      error = "";
+    } catch Error (string memory reason) {
+      error = reason;
+    }
+
+    delete validatedReferencers[commentSig.profileIdPointed][commentSig.pubIdPointed][commentSig.profileId];
   }
 
   /**
    * @dev Decodes the `payload` for Lens#mirrorWithSig
-   * @return an error string if the call failed, else empty string
+   * @return error an error string if the call failed, else empty string
    */
-  function _handleMirror(bytes memory _payload) internal returns (string memory) {
-    (,,,,,,DataTypes.MirrorWithSigData memory mirrorSig) = abi.decode(
+  function _handleMirror(uint16 _srcChainId, bytes memory _payload) internal returns (string memory error) {
+    (,address token, uint256 threshold, DataTypes.MirrorWithSigData memory mirrorSig) = abi.decode(
       _payload,
-      (bool, address, uint256, uint256, uint256, uint256, DataTypes.MirrorWithSigData)
+      (bool, address, uint256, DataTypes.MirrorWithSigData)
     );
 
-    try ILensHub(HUB).mirrorWithSig(mirrorSig) {
-      return "";
-    } catch Error (string memory reason) {
-      return reason;
+    GatedReferenceData memory data = gatedReferenceDataPerPub[mirrorSig.profileIdPointed][mirrorSig.pubIdPointed];
+
+    // validate that remote check was against the contract/threshold defined
+    if (data.remoteChainId != _srcChainId || data.balanceThreshold != threshold || data.tokenContract != token) {
+      return error = "InvalidRemoteInput";
     }
+
+    // @TODO: hash the vars vs deeply nested?
+    validatedReferencers[mirrorSig.profileIdPointed][mirrorSig.pubIdPointed][mirrorSig.profileId] = true;
+
+    try ILensHub(HUB).mirrorWithSig(mirrorSig) {
+      error = "";
+    } catch Error (string memory reason) {
+      error = reason;
+    }
+
+    delete validatedReferencers[mirrorSig.profileIdPointed][mirrorSig.pubIdPointed][mirrorSig.profileId];
   }
 }

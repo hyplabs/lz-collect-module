@@ -18,8 +18,7 @@ task('set-trusted-remotes', 'sets the trusted remotes for each module / remote p
   const referenceModule = await getContract(ethers, 'LZGatedReferenceModule', deployer);
   const collectModule = await getContract(ethers, 'LZGatedCollectModule', deployer);
 
-  // const { remotes } = LZ_CONFIG_GATED_MODULES[networkName];
-  const remotes = ['goerli'];
+  const { remotes } = LZ_CONFIG_GATED_MODULES[networkName];
 
   await Promise.all(remotes.map((remote) => limit(async () => {
     const { LZGatedProxy } = contractsDeployedOn(remote);
@@ -35,15 +34,15 @@ task('set-trusted-remotes', 'sets the trusted remotes for each module / remote p
     console.log(`tx: ${tx.hash}`);
     await tx.wait();
 
-    // trustedRemote = ethers.utils.solidityPack(['address','address'], [LZGatedProxy, referenceModule.address]);
-    // tx = await referenceModule.setTrustedRemote(LZ_CONFIG_GATED_MODULES[remote].chainId, trustedRemote);
-    // console.log(`tx: ${tx.hash}`);
-    // await tx.wait();
-    //
-    // trustedRemote = ethers.utils.solidityPack(['address','address'], [LZGatedProxy, collectModule.address]);
-    // tx = await collectModule.setTrustedRemote(LZ_CONFIG_GATED_MODULES[remote].chainId, LZGatedProxy);
-    // console.log(`tx: ${tx.hash}`);
-    // await tx.wait();
+    trustedRemote = ethers.utils.solidityPack(['address','address'], [LZGatedProxy, referenceModule.address]);
+    tx = await referenceModule.setTrustedRemote(LZ_CONFIG_GATED_MODULES[remote].chainId, trustedRemote);
+    console.log(`tx: ${tx.hash}`);
+    await tx.wait();
+
+    trustedRemote = ethers.utils.solidityPack(['address','address'], [LZGatedProxy, collectModule.address]);
+    tx = await collectModule.setTrustedRemote(LZ_CONFIG_GATED_MODULES[remote].chainId, LZGatedProxy);
+    console.log(`tx: ${tx.hash}`);
+    await tx.wait();
   })));
 
   console.log('done!');

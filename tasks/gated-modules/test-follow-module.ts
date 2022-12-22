@@ -13,7 +13,7 @@ import {
 
 const { ALCHEMY_MUMBAI_URL, ALCHEMY_POLYGON_URL } = process.env;
 
-const ESTIMATED_FOLLOW_FEE_GWEI = '1500'; // derived from `npx hardhat estimate-fee`
+const ESTIMATED_FOLLOW_FEE_GWEI = '2500'; // derived from `npx hardhat estimate-fee-gated`
 const ESTIMATED_GAS = 250000;
 const REMOTE_CHAIN_IDS = { 'mumbai': 80001, 'polygon': 137 };
 
@@ -48,14 +48,15 @@ task('test-follow-module', 'try to folllow a profile which has set their follow 
   console.log(`followWithSigData:`);
   console.log(JSON.stringify(followWithSigData,null,2));
 
+  const ESTIMATED_GAS_REMOTE = 500_000 // based on some tests...
+  const GAS_LIMIT = 250_000;
   console.log('lzGatedProxy.relayFollowWithSig()');
   const tx = await lzGatedProxy.relayFollowWithSig(
-    followerAddress,
-    SANDBOX_USER_PROFILE_ID,
     TOKEN_CONTRACT,
     TOKEN_THRESHOLD,
     followWithSigData,
-    { value: utils.parseUnits(ESTIMATED_FOLLOW_FEE_GWEI, 'gwei'), gasLimit: ESTIMATED_GAS }
+    ESTIMATED_GAS_REMOTE,
+    { value: utils.parseUnits(ESTIMATED_FOLLOW_FEE_GWEI, 'gwei'), gasLimit: GAS_LIMIT }
   );
   console.log(`tx: ${tx.hash}`);
   await tx.wait();

@@ -111,14 +111,11 @@ contract LZGatedCollectModule is FollowValidationModuleBase, ICollectModule, LzA
   ) internal override {
     (
       address token,
-      address collector,
-      uint256 profileId,
-      uint256 pubId,
       uint256 threshold,
       DataTypes.CollectWithSigData memory collectSig
-    ) = abi.decode(_payload, (address, address, uint256, uint256, uint256, DataTypes.CollectWithSigData));
+    ) = abi.decode(_payload, (address, uint256, DataTypes.CollectWithSigData));
 
-    GatedCollectData memory data = gatedCollectDataPerPub[profileId][pubId];
+    GatedCollectData memory data = gatedCollectDataPerPub[collectSig.profileId][collectSig.pubId];
 
     // validate that remote check was against the contract/threshold defined
     if (data.remoteChainId != _srcChainId || data.balanceThreshold != threshold || data.tokenContract != token) {
@@ -127,7 +124,7 @@ contract LZGatedCollectModule is FollowValidationModuleBase, ICollectModule, LzA
     }
 
     // @TODO: hash the vars vs deeply nested?
-    validatedCollectors[profileId][pubId][collector] = true;
+    validatedCollectors[collectSig.profileId][collectSig.pubId][collectSig.collector] = true;
 
     // use the signature to execute the collect
     try ILensHub(HUB).collectWithSig(collectSig) {}
@@ -135,6 +132,6 @@ contract LZGatedCollectModule is FollowValidationModuleBase, ICollectModule, LzA
       emit MessageFailed(_srcChainId, _srcAddress, _nonce, _payload, reason);
     }
 
-    delete validatedCollectors[profileId][pubId][collector];
+    delete validatedCollectors[collectSig.profileId][collectSig.pubId][collectSig.collector];
   }
 }

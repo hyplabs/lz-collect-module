@@ -233,6 +233,7 @@ makeSuiteCleanRoom('LZGatedFollowModule', function () {
           .relayFollowWithSig(
             erc721.address,
             BALANCE_THRESHOLD,
+            0, // customGasAmount
             followWithSigData
           )
       ).to.be.revertedWith('InsufficientBalance');
@@ -245,6 +246,7 @@ makeSuiteCleanRoom('LZGatedFollowModule', function () {
           .relayFollowWithSig(
             lzEndpoint.address,
             BALANCE_THRESHOLD,
+            0, // customGasAmount
             followWithSigData
           )
       ).to.be.revertedWith('InsufficientBalance');
@@ -258,6 +260,7 @@ makeSuiteCleanRoom('LZGatedFollowModule', function () {
         .relayFollowWithSig(
           erc721.address,
           0,
+          0, // customGasAmount
           followWithSigData
         );
 
@@ -274,6 +277,7 @@ makeSuiteCleanRoom('LZGatedFollowModule', function () {
         .relayFollowWithSig(
           erc20.address,
           BALANCE_THRESHOLD,
+          0, // customGasAmount
           followWithSigData
         );
 
@@ -281,7 +285,7 @@ makeSuiteCleanRoom('LZGatedFollowModule', function () {
       expect(messageFailedReason).to.equal('InvalidRemoteInput');
     });
 
-    it.only('processes a valid follow', async () => {
+    it('processes a valid follow', async () => {
       await erc721.safeMint(userAddress);
 
       const tx = await lzGatedProxy
@@ -289,7 +293,8 @@ makeSuiteCleanRoom('LZGatedFollowModule', function () {
         .relayFollowWithSig(
           erc721.address,
           BALANCE_THRESHOLD,
-          followWithSigData
+          0, // customGasAmount
+          followWithSigData,
         );
       const logs = parseLogsNested(await tx.wait(), abi, LZGatedFollowModuleABI.abi);
       const event = logs.find(({ name }) => name === 'MessageFailed');
@@ -313,6 +318,7 @@ makeSuiteCleanRoom('LZGatedFollowModule', function () {
         .relayFollowWithSig(
           erc721.address,
           BALANCE_THRESHOLD,
+          0, // customGasAmount
           followWithSigData
         );
 
@@ -322,6 +328,7 @@ makeSuiteCleanRoom('LZGatedFollowModule', function () {
           .relayFollowWithSig(
             erc721.address,
             BALANCE_THRESHOLD,
+            0, // customGasAmount
             followWithSigData
           )
       ).to.be.reverted; // pretty sure the revert is sig-related but no reason is provided

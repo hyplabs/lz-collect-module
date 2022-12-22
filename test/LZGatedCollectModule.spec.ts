@@ -261,11 +261,9 @@ makeSuiteCleanRoom('LZGatedCollectModule', function () {
         lzGatedProxy
           .connect(userTwo)
           .relayCollectWithSig(
-            userTwoAddress,
-            FIRST_PROFILE_ID,
-            '1',
             erc721.address,
             BALANCE_THRESHOLD,
+            0, // lzCustomGasAmount
             collectWithSigData
           )
       ).to.be.revertedWith('InsufficientBalance');
@@ -276,11 +274,9 @@ makeSuiteCleanRoom('LZGatedCollectModule', function () {
         lzGatedProxy
           .connect(userTwo)
           .relayCollectWithSig(
-            userTwoAddress,
-            FIRST_PROFILE_ID,
-            '1',
             lzEndpoint.address,
             BALANCE_THRESHOLD,
+            0, // lzCustomGasAmount
             collectWithSigData
           )
       ).to.be.revertedWith('InsufficientBalance');
@@ -292,11 +288,9 @@ makeSuiteCleanRoom('LZGatedCollectModule', function () {
       const tx = await lzGatedProxy
         .connect(userTwo)
         .relayCollectWithSig(
-          userTwoAddress,
-          FIRST_PROFILE_ID,
-          '1',
           erc721.address,
           0,
+          0, // lzCustomGasAmount
           collectWithSigData
         );
 
@@ -311,11 +305,9 @@ makeSuiteCleanRoom('LZGatedCollectModule', function () {
       const tx = await lzGatedProxy
         .connect(userTwo)
         .relayCollectWithSig(
-          userTwoAddress,
-          FIRST_PROFILE_ID,
-          '1',
           erc20.address,
           BALANCE_THRESHOLD,
+          0, // lzCustomGasAmount
           collectWithSigData
         );
 
@@ -329,11 +321,9 @@ makeSuiteCleanRoom('LZGatedCollectModule', function () {
       const tx = await lzGatedProxy
         .connect(userTwo)
         .relayCollectWithSig(
-          userTwoAddress,
-          FIRST_PROFILE_ID,
-          '1',
           erc721.address,
           BALANCE_THRESHOLD,
+          0, // lzCustomGasAmount
           collectWithSigData
         );
       const logs = parseLogsNested(await tx.wait(), abi, LZGatedCollectModuleABI.abi);

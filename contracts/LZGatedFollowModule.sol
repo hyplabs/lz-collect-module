@@ -113,13 +113,12 @@ contract LZGatedFollowModule is FollowValidatorFollowModuleBase, LzApp {
     bytes memory _payload
   ) internal override {
     (
-      address follower,
       address token,
-      uint256 profileId,
       uint256 threshold,
       DataTypes.FollowWithSigData memory followSig
-    ) = abi.decode(_payload, (address, address, uint256, uint256, DataTypes.FollowWithSigData));
+    ) = abi.decode(_payload, (address, uint256, DataTypes.FollowWithSigData));
 
+    uint256 profileId = followSig.profileIds[0];
     GatedFollowData memory data = gatedFollowPerProfile[profileId];
 
     // validate that remote check was against the contract/threshold defined
@@ -129,22 +128,14 @@ contract LZGatedFollowModule is FollowValidatorFollowModuleBase, LzApp {
     }
 
     // allow the follow in the callback to #processFollow
-    validatedFollowers[profileId][follower] = true;
+    validatedFollowers[profileId][followSig.follower] = true;
 
-    ILensHub(HUB).followWithSig(followSig);
+    // use the signature to execute the follow
+    try ILensHub(HUB).followWithSig(followSig) {}
+    catch Error (string memory reason) {
+      emit MessageFailed(_srcChainId, _srcAddress, _nonce, _payload, reason);
+    }
 
-    // (bool success, bytes memory reason) = HUB.call(abi.encodeWithSelector(ILensHub.followWithSig.selector, followSig));
-    // // try-catch all errors/exceptions
-    // if (!success) {
-    //   emit MessageFailed(_srcChainId, _srcAddress, _nonce, _payload, reason);
-    // }
-
-    // // use the signature to execute the follow
-    // try ILensHub(HUB).followWithSig(followSig) {}
-    // catch Error (string memory reason) {
-    //   emit MessageFailed(_srcChainId, _srcAddress, _nonce, _payload, reason);
-    // }
-
-    delete validatedFollowers[profileId][follower];
+    delete validatedFollowers[profileId][followSig.follower];
   }
 }

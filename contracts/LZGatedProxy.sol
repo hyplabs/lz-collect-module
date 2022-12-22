@@ -44,58 +44,49 @@ contract LZGatedProxy is SimpleLzApp {
    * NOTE: callers of this function MUST pass the exact values for `tokenContract` and `balanceThreshold` returned from
    * the call to LZGatedFollowModule.gatedFollowPerProfile(profileId) - or the transaction on the remote chain WILL
    * revert.
-   * @param follower: the account wishing to perform the follow action
-   * @param profileId: the id of the profile being followed
    * @param tokenContract: the ERC20/ERC721 contract set by the `profileId` to check a balance against
    * @param balanceThreshold: the amount of tokens required in order for a successful follow
+   * @param lzCustomGasAmount: custom gas amount that is paid for lz.send()
    * @param followSig: the follow signature expected by the LensHub
    */
   function relayFollowWithSig(
-    address follower,
-    uint256 profileId,
     address tokenContract,
     uint256 balanceThreshold,
+    uint256 lzCustomGasAmount,
     DataTypes.FollowWithSigData memory followSig
   ) external payable {
-    if (!_checkThreshold(follower, tokenContract, balanceThreshold)) { revert InsufficientBalance(); }
-
-    bytes memory customAdapterParams = abi.encode(1, 750_000);
+    if (!_checkThreshold(followSig.follower, tokenContract, balanceThreshold)) { revert InsufficientBalance(); }
 
     _lzSend(
       remoteFollowModule,
       abi.encode(
-        follower,
         tokenContract,
-        profileId,
         balanceThreshold,
         followSig
       ),
       payable(msg.sender),
-      bytes("")
+      _getAdapterParams(lzCustomGasAmount)
     );
   }
 
   /**
+   * TODO: validate that `sender` is the one who signed `commentSig` (ecrecover)
    * @notice validate a token balance on this chain before relaying the intent to comment on a Lens post on the remote
    * chain.
    * NOTE: callers of this function MUST pass the exact values for `tokenContract` and `balanceThreshold` returned from
    * the call to LZGatedReferenceModule.gatedReferenceDataPerPub(profileIdPointed, pubIdPointed) - or the transaction
    * on the remote chain WILL revert.
    * @param sender: the account wishing to perform the comment action
-   * @param profileId: the id of the profile wishing to comment
-   * @param profileIdPointed: the id of the profile that owns the post
-   * @param pubIdPointed: the id of the post
    * @param tokenContract: the ERC20/ERC721 contract set by the `profileId` to check a balance against
    * @param balanceThreshold: the amount of tokens required in order for a successful follow
+   * @param lzCustomGasAmount: custom gas amount that is paid for lz.send()
    * @param commentSig: the comment signature expected by the LensHub
    */
   function relayCommentWithSig(
     address sender,
-    uint256 profileId,
-    uint256 profileIdPointed,
-    uint256 pubIdPointed,
     address tokenContract,
     uint256 balanceThreshold,
+    uint256 lzCustomGasAmount,
     DataTypes.CommentWithSigData memory commentSig
   ) external payable {
     if (!_checkThreshold(sender, tokenContract, balanceThreshold)) { revert InsufficientBalance(); }
@@ -105,38 +96,32 @@ contract LZGatedProxy is SimpleLzApp {
       abi.encode(
         true, // isComment
         tokenContract,
-        profileId,
-        profileIdPointed,
-        pubIdPointed,
         balanceThreshold,
         commentSig
       ),
       payable(msg.sender),
-      bytes("")
+      _getAdapterParams(lzCustomGasAmount)
     );
   }
 
   /**
+   * TODO: validate that `sender` is the one who signed `mirrorSig` (ecrecover)
    * @notice validate a token balance on this chain before relaying the intent to mirror a Lens post on the remote
    * chain.
    * NOTE: callers of this function MUST pass the exact values for `tokenContract` and `balanceThreshold` returned from
    * the call to LZGatedReferenceModule.gatedReferenceDataPerPub(profileIdPointed, pubIdPointed) - or the transaction
    * on the remote chain WILL revert.
    * @param sender: the account wishing to perform the mirror action
-   * @param profileId: the id of the profile wishing to mirror
-   * @param profileIdPointed: the id of the profile that owns the post
-   * @param pubIdPointed: the id of the post
    * @param tokenContract: the ERC20/ERC721 contract set by the `profileId` to check a balance against
    * @param balanceThreshold: the amount of tokens required in order for a successful follow
+   * @param lzCustomGasAmount: custom gas amount that is paid for lz.send()
    * @param mirrorSig: the mirror signature expected by the LensHub
    */
   function relayMirrorWithSig(
     address sender,
-    uint256 profileId,
-    uint256 profileIdPointed,
-    uint256 pubIdPointed,
     address tokenContract,
     uint256 balanceThreshold,
+    uint256 lzCustomGasAmount,
     DataTypes.MirrorWithSigData memory mirrorSig
   ) external payable {
     if (!_checkThreshold(sender, tokenContract, balanceThreshold)) { revert InsufficientBalance(); }
@@ -146,14 +131,11 @@ contract LZGatedProxy is SimpleLzApp {
       abi.encode(
         false, // isComment
         tokenContract,
-        profileId,
-        profileIdPointed,
-        pubIdPointed,
         balanceThreshold,
         mirrorSig
       ),
       payable(msg.sender),
-      bytes("")
+      _getAdapterParams(lzCustomGasAmount)
     );
   }
 
@@ -163,35 +145,28 @@ contract LZGatedProxy is SimpleLzApp {
    * NOTE: callers of this function MUST pass the exact values for `tokenContract` and `balanceThreshold` returned from
    * the call to LZGatedCollectModule.gatedCollectDataPerPub(profileId, pubId) - or the transaction
    * on the remote chain WILL revert.
-   * @param collector: the account wishing to perform the collect action
-   * @param profileId: the id of the profile wishing to collect
-   * @param pubId: the id of the post
    * @param tokenContract: the ERC20/ERC721 contract set by the `profileId` to check a balance against
    * @param balanceThreshold: the amount of tokens required in order for a successful follow
+   * @param lzCustomGasAmount: custom gas amount that is paid for lz.send()
    * @param collectSig: the collect signature expected by the LensHub
    */
   function relayCollectWithSig(
-    address collector,
-    uint256 profileId,
-    uint256 pubId,
     address tokenContract,
     uint256 balanceThreshold,
+    uint256 lzCustomGasAmount,
     DataTypes.CollectWithSigData memory collectSig
   ) external payable {
-    if (!_checkThreshold(collector, tokenContract, balanceThreshold)) { revert InsufficientBalance(); }
+    if (!_checkThreshold(collectSig.collector, tokenContract, balanceThreshold)) { revert InsufficientBalance(); }
 
     _lzSend(
       remoteCollectModule,
       abi.encode(
         tokenContract,
-        collector,
-        profileId,
-        pubId,
         balanceThreshold,
         collectSig
       ),
       payable(msg.sender),
-      bytes("")
+      _getAdapterParams(lzCustomGasAmount)
     );
   }
 
@@ -215,5 +190,15 @@ contract LZGatedProxy is SimpleLzApp {
     (uint256 balance) = abi.decode(result, (uint256));
 
     return balance >= balanceThreshold;
+  }
+
+  /**
+   * @dev returns the adapter params (version 1) required to override the gas provided for the tx on the destination
+   * chain: https://layerzero.gitbook.io/docs/evm-guides/advanced/relayer-adapter-parameters
+   */
+  function _getAdapterParams(uint256 gasAmount) private pure returns (bytes memory adapterParams) {
+    adapterParams = gasAmount > 0
+      ? abi.encodePacked(uint16(1), gasAmount)
+      : bytes("");
   }
 }
